@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniCredit Portal Świadomości i Zarządzania AI</title>
+    <meta name="description" content="Interaktywny portal szkoleniowy i zgodności AI dla pracowników UniCredit. Dowiedz się o generatywnej sztucznej inteligencji, hierarchii ryzyka Aktu o AI oraz zgłoś innowacje na ai@unicredit.pl.">
+    <!-- Google Fonts: Inter and Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-theme">
+    <!-- HEADER -->
+    <header class="app-header">
+        <div class="header-logo-container">
+            <div class="uc-logo">
+                <svg viewBox="0 0 100 100" width="40" height="40">
+                    <circle cx="50" cy="50" r="46" fill="none" stroke="var(--uc-red)" stroke-width="8"/>
+                    <path d="M43 30 L43 70 M57 30 L57 70" stroke="var(--uc-red)" stroke-width="8" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="logo-text">
+                <h1>UniCredit</h1>
+                <span>Zarządzanie i Świadomość AI</span>
+            </div>
+        </div>
+        <nav class="app-nav">
+            <button class="nav-btn active" data-tab="presentation">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                Slajdy Szkoleniowe
+            </button>
+            <button class="nav-btn" data-tab="handbook">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Podręcznik Pracownika
+            </button>
+            <button class="nav-btn" data-tab="quiz">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Quiz Zgodności
+            </button>
+            <button class="nav-btn" data-tab="simulator">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                Piaskownica AI
+            </button>
+            <button class="nav-btn" data-tab="adoption">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                Skaluj Pomysł 🚀
+            </button>
+        </nav>
+        <div class="header-actions">
+            <!-- Language Switcher Button -->
+            <a href="index.html" class="btn btn-border" style="padding: 6px 12px; font-size:11px; font-weight:700; display:flex; align-items:center; gap:6px;">
+                🇺🇸 ENGLISH
+            </a>
+            <button id="theme-toggle" class="icon-btn" title="Przełącz motyw Jasny/Ciemny">
+                <svg id="sun-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <svg id="moon-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <div class="user-badge">
+                <span class="user-avatar">SS</span>
+                <div class="user-info">
+                    <span class="user-name">Sylwia Szuba</span>
+                    <span class="user-role">AI Governance Lead</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP WRAPPER -->
+    <main class="app-container">
+
+        <!-- PRESENTATION TAB -->
+        <section id="presentation-tab" class="tab-content active">
+            <div class="presentation-layout">
+                <!-- Slide Sidebar Navigator -->
+                <aside class="slide-sidebar">
+                    <div class="sidebar-header">
+                        <h3>Interaktywna Agenda</h3>
+                        <p>Szkolenie z Zarządzania AI</p>
+                    </div>
+                    <ul class="slide-list" id="slide-index-list">
+                        <!-- Populated by JavaScript -->
+                    </ul>
+                </aside>
+
+                <!-- Main Presentation Box -->
+                <div class="presentation-workspace">
+                    <div class="slide-viewport-wrapper">
+                        <!-- Progress Line -->
+                        <div class="slide-progress-bar">
+                            <div class="slide-progress-fill" id="slide-progress-fill"></div>
+                        </div>
+
+                        <!-- Slides viewport -->
+                        <div class="slide-viewport" id="slide-viewport">
+                            
+                            <!-- Slide 1: Cover -->
+                            <div class="slide active-slide" id="slide-1" data-title="Slajd Tytułowy" data-notes="Serdecznie witam wszystkich na sesji szkoleniowej UniCredit poświęconej świadomości AI. Przedstaw się jako lider ds. zarządzania sztuczną inteligencją. Podkreśl, że UniCredit pragnie wspierać pracowników w codziennej pracy najnowocześniejszymi narzędziami, ale zawsze w sposób całkowicie bezpieczny i zgodny z regulacjami prawnymi.">
+                                <div class="slide-container cover-layout">
+                                    <div class="cover-glow"></div>
+                                    <div class="cover-content">
+                                        <div class="cover-badge">KORPORACYJNY PROGRAM SZKOLENIOWY</div>
+                                        <h2 class="cover-title">Bezpieczna i Odpowiedzialna Nawigacja w Przyszłość Bankowości</h2>
+                                        <h3 class="cover-subtitle">Warsztaty z Zakresu Świadomości i Zarządzania AI</h3>
+                                        <div class="cover-footer">
+                                            <div class="presenter-card">
+                                                <strong>Sylwia Szuba</strong>
+                                                <span>AI Governance Lead & Foundation Domain Owner</span>
+                                            </div>
+                                            <div class="bank-tag">
+                                                <span>Grupa UniCredit</span>
+                                                <small>Polska (ai@unicredit.pl)</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 2: Agenda -->
+                            <div class="slide" id="slide-2" data-title="Agenda Warsztatów" data-notes="Krótko omów sześć części dzisiejszego spotkania. Zaznacz, że nie skupiamy się tylko na zakazach i przepisach, lecz pokażemy jak bezpiecznie podnosić wydajność i skalować własne, innowacyjne prompty do poziomu systemów bankowych.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">02 / 21</span>
+                                        <h3 class="slide-title">Agenda Warsztatów</h3>
+                                        <p class="slide-tagline">Plan szkolenia z zakresu bezpiecznego stosowania sztucznej inteligencji</p>
+                                    </div>
+                                    <div class="slide-body grid-2">
+                                        <div class="agenda-column">
+                                            <div class="agenda-item">
+                                                <div class="agenda-num">01</div>
+                                                <div class="agenda-desc">
+                                                    <h4>Czym jest AI i Generatywne AI?</h4>
+                                                    <p>Demystyfikacja modeli LLM i autouzupełnianie tokenów</p>
+                                                </div>
+                                            </div>
+                                            <div class="agenda-item">
+                                                <div class="agenda-num">02</div>
+                                                <div class="agenda-desc">
+                                                    <h4>Dlaczego AI? Efektywność w pracy</h4>
+                                                    <p>Oszczędność czasu i kluczowe filary transformacji bankowości</p>
+                                                </div>
+                                            </div>
+                                            <div class="agenda-item">
+                                                <div class="agenda-num">03</div>
+                                                <div class="agenda-desc">
+                                                    <h4>Nasz Bezpieczny Pakiet Narzędzi AI</h4>
+                                                    <p>Wdrożenie Google Gemini Enterprise i NotebookLM</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="agenda-column">
+                                            <div class="agenda-item">
+                                                <div class="agenda-num">04</div>
+                                                <div class="agenda-desc">
+                                                    <h4>Zarządzanie AI i Unijny Akt o AI</h4>
+                                                    <p>Zabronione praktyki, systemy wysokiego ryzyka i wymogi prawne</p>
+                                                </div>
+                                            </div>
+                                            <div class="agenda-item">
+                                                <div class="agenda-num">05</div>
+                                                <div class="agenda-desc">
+                                                    <h4>Złote Zasady (Codzienna Praktyka)</h4>
+                                                    <p>Praktyczne listy nakazów i zakazów (DOs & DON'Ts)</p>
+                                                </div>
+                                            </div>
+                                            <div class="agenda-item">
+                                                <div class="agenda-num">06</div>
+                                                <div class="agenda-desc">
+                                                    <h4>Od Iskry Innowacji do Skalowania</h4>
+                                                    <p>Jak bezpłatnie i bezpiecznie wdrożyć Twój pomysł przez ai@unicredit.pl</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 3: Section Divider 1 -->
+                            <div class="slide" id="slide-3" data-title="Część 1: Czym jest AI?" data-notes="Rozpoczynamy Część 1. Zróbmy krótki sondaż na wstępie – zapytajmy uczestników, jak często korzystają z narzędzi AI w życiu prywatnym lub zawodowym. Przejdźmy do wyjaśnienia, jak faktycznie działają modele językowe, aby rozwiać narosłe mity.">
+                                <div class="slide-container divider-layout">
+                                    <div class="divider-content">
+                                        <span class="divider-num">CZĘŚĆ 01</span>
+                                        <h2 class="divider-title">Czym jest AI i Generatywne AI?</h2>
+                                        <p class="divider-text">Zrozumienie podstaw: jak zaawansowane mechanizmy autouzupełniania tekstu tworzą naturalne, logiczne odpowiedzi.</p>
+                                        <div class="divider-graphic">
+                                            <span class="bubble">💡</span>
+                                            <span class="bubble active">🧠</span>
+                                            <span class="bubble">⚙️</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 4: Traditional vs GenAI -->
+                            <div class="slide" id="slide-4" data-title="AI Tradycyjne vs Generatywne" data-notes="Porównaj tradycyjne i generatywne AI. Bank od lat stosuje sztuczną inteligencję (np. modele ryzyka kredytowego, wykrywanie oszustw na kartach). Generatywne AI to zupełnie nowa era tworzenia treści, w której system wspomaga nas pisząc teksty, tłumacząc lub pisząc kod.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">04 / 21</span>
+                                        <h3 class="slide-title">AI Tradycyjne vs. Generatywne</h3>
+                                        <p class="slide-tagline">Ewolucja sztucznej inteligencji w sektorze finansowym</p>
+                                    </div>
+                                    <div class="slide-body grid-2">
+                                        <div class="feature-card legacy">
+                                            <div class="card-head">
+                                                <span class="card-icon">📊</span>
+                                                <h4>Tradycyjne (Predykcyjne) AI</h4>
+                                            </div>
+                                            <p class="card-intro">Analizuje cyfry, harmonogramy i ustrukturyzowane wzorce, by przewidywać precyzyjne prawdopodobieństwa.</p>
+                                            <ul class="feature-list">
+                                                <li><strong>Scoring Kredytowy:</strong> Ocena rzetelności finansowej</li>
+                                                <li><strong>Detektor Oszustw:</strong> Wykrywanie podejrzanych transakcji</li>
+                                                <li><strong>Rynki Finansowe:</strong> Algorytmiczne transakcje giełdowe</li>
+                                            </ul>
+                                            <div class="card-summary">Cel: Analiza i prognozowanie</div>
+                                        </div>
+                                        <div class="feature-card generative">
+                                            <div class="card-head">
+                                                <span class="card-icon">✨</span>
+                                                <h4>Generatywne AI (GenAI)</h4>
+                                            </div>
+                                            <p class="card-intro">Przeszkolone na gigantycznych zbiorach tekstów, by tworzyć oryginalne, spójne wypowiedzi w języku naturalnym.</p>
+                                            <ul class="feature-list">
+                                                <li><strong>Wyszukiwanie wiedzy:</strong> Przeszukiwanie procedur bankowych</li>
+                                                <li><strong>Generowanie Kodu:</strong> Pisanie makr VBA, SQL, Python</li>
+                                                <li><strong>Synteza Informacji:</strong> Podsumowanie audytów i maili</li>
+                                            </ul>
+                                            <div class="card-summary highlight-border">Cel: Tworzenie i optymalizacja</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 5: How LLMs Work -->
+                            <div class="slide" id="slide-5" data-title="Jak działają modele LLM" data-notes="Wyjaśnij mechanizm przewidywania następnego tokenu i powstawanie halucynacji. Użyj analogii autouzupełniania w telefonie. Omów też pojęcie okna kontekstowego. Zawsze podkreślaj, że model nie zastępuje człowieka, dlatego konieczna jest weryfikacja.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">05 / 21</span>
+                                        <h3 class="slide-title">Jak działają modele językowe?</h3>
+                                        <p class="slide-tagline">Mechanizm przewidywania tokenów i rola okna kontekstowego</p>
+                                    </div>
+                                    <div class="slide-body grid-3">
+                                        <div class="info-box">
+                                            <div class="box-icon">⚡</div>
+                                            <h4>Przewidywanie następnego słowa</h4>
+                                            <p>Modele LLM działają jak superzaawansowane mechanizmy autouzupełniania tekstu. Nie 'myślą' – obliczają statystyczne prawdopodobieństwo tego, jakie słowo (token) powinno nastąpić po wpisanym przez Ciebie zapytaniu.</p>
+                                        </div>
+                                        <div class="info-box">
+                                            <div class="box-icon">📖</div>
+                                            <h4>Okno Kontekstowe</h4>
+                                            <p>To aktywna 'pamięć robocza' modelu w danej rozmowie. Nasze bezpieczne narzędzia korporacyjne mają ogromne okno kontekstowe, dzięki czemu możesz załączyć całą instrukcję lub regulamin i zadawać pytania.</p>
+                                        </div>
+                                        <div class="info-box warning-box">
+                                            <div class="box-icon">⚠️</div>
+                                            <h4>Halucynacje i Odpowiedzialność</h4>
+                                            <p>Ponieważ model bazuje na statystyce, może wygenerować zmyślone fakty brzmiące bardzo wiarygodnie ('halucynacje'). <strong>Zawsze weryfikuj wyniki.</strong> Ty ponosisz pełną odpowiedzialność za ostateczną treść.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 6: Section Divider 2 -->
+                            <div class="slide" id="slide-6" data-title="Część 2: Korzyści" data-notes="Przejście do Części 2: Korzyści z wdrożenia AI. Sztuczna inteligencja nie odbiera pracy – eliminuje rutynowe, monotonne zadania biurowe, dzięki czemu zyskujemy czas na relacje z klientem i analizę strategiczną.">
+                                <div class="slide-container divider-layout">
+                                    <div class="divider-content">
+                                        <span class="divider-num">CZĘŚĆ 02</span>
+                                        <h2 class="divider-title">Dlaczego AI? Codzienna Efektywność</h2>
+                                        <p class="divider-text">Zwiększanie wydajności operacyjnej: wdrożenie AI jako zaufanego, błyskawicznego asystenta każdego pracownika.</p>
+                                        <div class="divider-graphic">
+                                            <span class="bubble">📈</span>
+                                            <span class="bubble active">🚀</span>
+                                            <span class="bubble">👥</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 7: Unlocking Efficiency in Daily Operations -->
+                            <div class="slide" id="slide-7" data-title="Codzienna wydajność pracy" data-notes="Opisz zadania dnia codziennego. Wyjaśnij, jak Gemini i NotebookLM potrafią oszczędzić godziny pracy. Przytocz przykłady: skrócenie spisywania notatek z 3-godzinnego spotkania, tłumaczenie dokumentów technicznych itp.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">07 / 21</span>
+                                        <h3 class="slide-title">Optymalizacja Codziennych Zadań</h3>
+                                        <p class="slide-tagline">Jak cyfrowy asystent wspiera Cię w rutynowych obowiązkach administracyjnych</p>
+                                    </div>
+                                    <div class="slide-body grid-4">
+                                        <div class="benefit-card">
+                                            <div class="benefit-icon">📝</div>
+                                            <h4>Błyskawiczne Podsumowania</h4>
+                                            <p>Skróć 50-stronicowe raporty z audytów, regulaminy prawne lub długie wątki mailowe do najważniejszych punktów w kilka sekund.</p>
+                                        </div>
+                                        <div class="benefit-card">
+                                            <div class="benefit-icon">🌐</div>
+                                            <h4>Spójne Tłumaczenia</h4>
+                                            <p>Tłumacz i harmonizuj dokumentację między naszymi europejskimi oddziałami (IT, DE, PL, BE) z zachowaniem bankowego kontekstu.</p>
+                                        </div>
+                                        <div class="benefit-card">
+                                            <div class="benefit-icon">✉️</div>
+                                            <h4>Przygotowywanie Pism</h4>
+                                            <p>Szkicuj szablony e-maili, ramy raportów lub zmień ton wypowiedzi z technicznego żargonu na prosty, przyjazny dla klienta język.</p>
+                                        </div>
+                                        <div class="benefit-card">
+                                            <div class="benefit-icon">💻</div>
+                                            <h4>Makra i Zapytania SQL</h4>
+                                            <p>Generuj zapytania do baz danych, pisz makra VBA w programie Excel lub debuguj błędy w kodzie z instrukcjami krok po kroku.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 8: 4 Pillars of AI in Banking -->
+                            <div class="slide" id="slide-8" data-title="Cztery Filary AI w Banku" data-notes="Przedstaw 4 kluczowe filary transformacji bankowości oparte na badaniach Google Cloud. Wyjaśnij, że te filary definiują kierunki, w których UniCredit rozwija bezpieczne innowacje.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">08 / 21</span>
+                                        <h3 class="slide-title">Cztery Filary AI w Bankowości</h3>
+                                        <p class="slide-tagline">Systemowy wpływ sztucznej inteligencji na procesy instytucji finansowych</p>
+                                    </div>
+                                    <div class="slide-body table-layout">
+                                        <table class="presentation-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Filar transformacji</th>
+                                                    <th>Mandat Korporacyjny</th>
+                                                    <th>Przykłady Wdrożeń</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><strong>Personalizacja Obsługi</strong></td>
+                                                    <td>Błyskawiczne, dopasowane odpowiedzi i kontekstowe wskazówki dla klientów.</td>
+                                                    <td>Inteligentni asystenci rozwiązujący zgłoszenia 24/7; dedykowane skrypty doradcze.</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Inteligentna Tarcza Ryzyka</strong></td>
+                                                    <td>Analiza transakcji w czasie rzeczywistym w celu przeciwdziałania przestępstwom.</td>
+                                                    <td>Monitorowanie transakcji AML; zaawansowane, w pełni wyjaśnialne modele ryzyka kredytowego.</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Doskonałość Operacyjna</strong></td>
+                                                    <td>Automatyzacja procesów opartych na pracy z dokumentami w back-office.</td>
+                                                    <td>Automatyczny audyt dokumentacji kredytowej; szybka ekstrakcja warunków z umów dwustronnych.</td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Wzmocnienie Pracowników</strong></td>
+                                                    <td>Budowanie wewnętrznej wyszukiwarki semantycznej do szybkiego wyszukiwania wiedzy.</td>
+                                                    <td>Umożliwienie doradcom natychmiastowego przeszukiwania wewnętrznych procedur kredytowych banku.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 9: Section Divider 3 -->
+                            <div class="slide" id="slide-9" data-title="Część 3: Nasz Pakiet AI" data-notes="Przechodzimy do Części 3: Nasze narzędzia korporacyjne. Omówimy Gemini Enterprise i NotebookLM oraz udowodnimy, dlaczego logowanie służbowe w pełni chroni dane banku przed wyciekiem.">
+                                <div class="slide-container divider-layout">
+                                    <div class="divider-content">
+                                        <span class="divider-num">CZĘŚĆ 03</span>
+                                        <h2 class="divider-title">Nasz Bezpieczny Pakiet AI: Gemini & NotebookLM</h2>
+                                        <p class="divider-text">Zestaw licencjonowanych narzędzi w chmurze Google, gwarantujących bezwzględne bezpieczeństwo danych bankowych.</p>
+                                        <div class="divider-graphic">
+                                            <span class="bubble">🛡️</span>
+                                            <span class="bubble active">📥</span>
+                                            <span class="bubble">🤖</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 10: Introducing Gemini and NotebookLM -->
+                            <div class="slide" id="slide-10" data-title="Gemini vs NotebookLM" data-notes="Wyjaśnij różnice. Gemini to konwersacyjny asystent połączony z siecią (do pisania pism, makr, burzy mózgów). NotebookLM to badacz oparty wyłącznie o wgrane przez Ciebie pliki bankowe, podający klikalne źródła i przypisy, co wyklucza zmyślanie.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">10 / 21</span>
+                                        <h3 class="slide-title">Poznaj Narzędzia UniCredit</h3>
+                                        <p class="slide-tagline">Dwa różne asystenty dedykowane do innych rodzajów zadań służbowych</p>
+                                    </div>
+                                    <div class="slide-body grid-2">
+                                        <div class="toolkit-panel gemini-style">
+                                            <div class="panel-badge">Partner Konwersacyjny</div>
+                                            <h4>Google Gemini Enterprise</h4>
+                                            <p class="panel-desc">Aktywny asystent ułatwiający burzę mózgów, redagowanie treści oraz pisanie kodu.</p>
+                                            <ul class="panel-list">
+                                                <li><strong>Szybkie Szkice:</strong> Strukturyzacja dokumentów, maili i agend</li>
+                                                <li><strong>Tłumaczenie Tekstów:</strong> Sprawne przetwarzanie treści wielojęzycznych</li>
+                                                <li><strong>Generowanie Kodu:</strong> Pisanie i wyjaśnianie makr SQL, VBA, Python</li>
+                                            </ul>
+                                            <div class="panel-use">Najlepszy do: kreatywnego pisania i zadań programistycznych</div>
+                                        </div>
+                                        <div class="toolkit-panel notebook-style">
+                                            <div class="panel-badge">Zweryfikowany Badacz</div>
+                                            <h4>Google NotebookLM</h4>
+                                            <p class="panel-desc">Zamknięty asystent analityczny, działający wyłącznie w oparciu o załączone pliki.</p>
+                                            <ul class="panel-list">
+                                                <li><strong>Brak Pamięci Zewnętrznej:</strong> Czerpie wiedzę tylko z wgranych plików</li>
+                                                <li><strong>Klikalne Przypisy:</strong> Każda odpowiedź ma link do konkretnego akapitu</li>
+                                                <li><strong>Synteza Źródeł:</strong> Szybkie zestawianie warunków z wielu procedur</li>
+                                            </ul>
+                                            <div class="panel-use">Najlepszy do: audytu umów i analizy wewnętrznych procedur</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 11: Enterprise Data Protection [INTERACTIVE INFOGRAPHIC] -->
+                            <div class="slide" id="slide-11" data-title="Tarcza Bezpieczeństwa" data-notes="Niezwykle ważny slajd: Tarcza Bezpieczeństwa. Wykaż kolosalną różnicę pomiędzy logowaniem służbowym @unicredit.pl (bezpieczny skarbiec banku, brak trenowania modeli, brak wglądu pracowników Google) a kontami prywatnymi @gmail.com (ogłoszenie danych w kawiarni, dane służą do publicznego uczenia modeli, weryfikacja przez podwykonawców).">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">11 / 21</span>
+                                        <h3 class="slide-title">Tarcza Bezpieczeństwa UniCredit</h3>
+                                        <p class="slide-tagline">Dlaczego logowanie służbowym kontem @unicredit.pl gwarantuje 100% ochrony danych</p>
+                                    </div>
+                                    <div class="slide-body">
+                                        <!-- Interactive Shield Grid -->
+                                        <div class="shield-comparison-grid">
+                                            <div class="shield-card secure-shield">
+                                                <div class="shield-indicator">
+                                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                                    TARCZA BEZPIECZEŃSTWA AKTYWNA
+                                                </div>
+                                                <h4>Służbowe konto @unicredit.pl</h4>
+                                                <p class="shield-sub">Zabezpieczona, korporacyjna licencja Google Workspace</p>
+                                                
+                                                <div class="shield-pillar">
+                                                    <span class="pillar-status success">✓</span>
+                                                    <div>
+                                                        <h5>Brak trenowania modeli publicznych</h5>
+                                                        <p>Twoje zapytania i załączone pliki nigdy nie posłużą do szkolenia modeli Google.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="shield-pillar">
+                                                    <span class="pillar-status success">✓</span>
+                                                    <div>
+                                                        <h5>Brak wglądu ludzkiego</h5>
+                                                        <p>Żaden pracownik Google nie ma fizycznego dostępu do historii Twoich czatów i plików.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="shield-pillar">
+                                                    <span class="pillar-status success">✓</span>
+                                                    <div>
+                                                        <h5>Bezwzględna izolacja danych</h5>
+                                                        <p>Wszystkie operacje odbywają się w bezpiecznej domenie UniCredit. Dane są odcięte od innych klientów.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="shield-badge secure-badge">W pełni bezpieczne dla danych bankowych</div>
+                                            </div>
+                                            
+                                            <div class="shield-card unsecure-shield">
+                                                <div class="shield-indicator alert">
+                                                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                                    RYZYKO WYCIEKU DANYCH
+                                                </div>
+                                                <h4>Konta prywatne i darmowe czaty</h4>
+                                                <p class="shield-sub">Prywatne @gmail.com, darmowy ChatGPT, Claude, Copilot</p>
+                                                
+                                                <div class="shield-pillar">
+                                                    <span class="pillar-status danger">✗</span>
+                                                    <div>
+                                                        <h5>Uczenie modeli publicznych</h5>
+                                                        <p>Wpisywane treści są archiwizowane i aktywnie przetwarzane w celu trenowania modeli.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="shield-pillar">
+                                                    <span class="pillar-status danger">✗</span>
+                                                    <div>
+                                                        <h5>Weryfikacja przez ludzi</h5>
+                                                        <p>Zewnętrzni audytorzy rutynowo przeglądają historię rozmów, by oceniać jakość odpowiedzi.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="shield-pillar">
+                                                    <span class="pillar-status danger">✗</span>
+                                                    <div>
+                                                        <h5>Brak ochrony prawnej banku</h5>
+                                                        <p>Brak umów poufności i rejestrowania incydentów. Brak gwarancji zgodności z przepisami RODO.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="shield-badge dangerous-badge">Kategoryczny zakaz używania w pracy banku</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 12: Section Divider 4 -->
+                            <div class="slide" id="slide-12" data-title="Część 4: Zarządzanie AI" data-notes="Przechodzimy do Części 4: Regulacje prawne i Unijny Akt o AI. Regulacje nie są barierą – są fundamentem zaufania w bankowości. Bezpieczeństwo naszych systemów chroni zarówno klientów, jak i nas samych.">
+                                <div class="slide-container divider-layout">
+                                    <div class="divider-content">
+                                        <span class="divider-num">CZĘŚĆ 04</span>
+                                        <h2 class="divider-title">Zarządzanie AI i Unijny Akt o AI</h2>
+                                        <p class="divider-text">Zgodność regulacyjna: dopasowanie wewnętrznych cykli życia systemów UniCredit do unijnego podejścia opartego na ryzyku.</p>
+                                        <div class="divider-graphic">
+                                            <span class="bubble">⚖️</span>
+                                            <span class="bubble active">🛡️</span>
+                                            <span class="bubble">📊</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 13: EU AI Act Risk Hierarchy [INTERACTIVE PYRAMID] -->
+                            <div class="slide" id="slide-13" data-title="Hierarchia Ryzyka Aktu AI" data-notes="Przedstaw piramidę ryzyka Aktu o AI. Zachęć do klikania poszczególnych szczebli. Wyjaśnij konsekwencje prawne. Wspomnij o Artykule 4 Aktu o AI, który nakłada na instytucje obowiązek budowania kompetencji i alfabetyzacji AI (AI Literacy) wśród pracowników – ta prezentacja jest elementem realizacji tego obowiązku przez UniCredit.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">13 / 21</span>
+                                        <h3 class="slide-title">Piramida Ryzyka Aktu o AI</h3>
+                                        <p class="slide-tagline">Rozporządzenie 2024/1689: Klasyfikacja systemów sztucznej inteligencji (Interaktywna Piramida)</p>
+                                    </div>
+                                    <div class="slide-body grid-2">
+                                        <!-- Interactive Pyramid Visual -->
+                                        <div class="pyramid-wrapper">
+                                            <div class="pyramid-container">
+                                                <div class="pyramid-tier prohibited" data-tier="prohibited">
+                                                    <span>ZABRONIONE (Zakazane)</span>
+                                                </div>
+                                                <div class="pyramid-tier high-risk" data-tier="highrisk">
+                                                    <span>WYSOKIEGO RYZYKA (Ścisłe kontrole)</span>
+                                                </div>
+                                                <div class="pyramid-tier limited" data-tier="limited">
+                                                    <span>OGRANICZONE RYZYKO (Przejrzystość)</span>
+                                                </div>
+                                                <div class="pyramid-tier minimal" data-tier="minimal">
+                                                    <span>MINIMALNE RYZYKO (Bez ograniczeń)</span>
+                                                </div>
+                                            </div>
+                                            <p class="pyramid-tip">💡 Kliknij na szczebel piramidy, aby poznać wymogi prawne</p>
+                                        </div>
+
+                                        <!-- Tier Detail Card -->
+                                        <div class="tier-detail-card" id="tier-detail-display">
+                                            <div class="detail-card-header">
+                                                <span class="tier-badge" id="tier-badge-type">ZABRONIONE</span>
+                                                <h4 id="tier-detail-title">Niedozwolony Poziom Ryzyka</h4>
+                                            </div>
+                                            <p class="tier-detail-desc" id="tier-detail-desc">Kliknij na dowolny poziom piramidy po lewej stronie, aby wyświetlić szczegółowe opisy prawne, obostrzenia oraz konkretne przykłady systemów w bankowości podlegające unijnym regulacjom.</p>
+                                            <div class="tier-examples-box" id="tier-examples-box">
+                                                <h5>Przykłady i Obostrzenia w Bankowości:</h5>
+                                                <ul id="tier-examples-list">
+                                                    <li>Wybierz poziom ryzyka z piramidy.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 14: UniCredit Internal Classifications -->
+                            <div class="slide" id="slide-14" data-title="Klasyfikacje Wewnętrzne" data-notes="Omów wdrożenie regulacji w UniCredit. Podkreśl: Systemy Zabronione (detekcja emocji w pracy jest zakazana, social scoring jest zakazany). Systemy Wysokiego Ryzyka (ocena zdolności kredytowej retail/corporate, filtracja CV przy rekrutacji, AML). Wymagają one FRIAs, zatwierdzenia przez Zarząd (ExCom) i opinii CISO.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">14 / 21</span>
+                                        <h3 class="slide-title">Klasyfikacja AI w UniCredit</h3>
+                                        <p class="slide-tagline">Mapowanie unijnych poziomów ryzyka w strukturach bankowych</p>
+                                    </div>
+                                    <div class="slide-body grid-2">
+                                        <div class="risk-card prohibited-card">
+                                            <div class="risk-card-head">
+                                                <span class="badge prohibited-badge">Bezwzględny Zakaz</span>
+                                                <h4>Systemy Zabronione</h4>
+                                            </div>
+                                            <p>Systemy naruszające godność człowieka lub manipulujące zachowaniem. W UniCredit:</p>
+                                            <ul class="checklist">
+                                                <li><strong>Rozpoznawanie Emocji w Miejscu Pracy:</strong> Stosowanie AI do badania stresu lub uwagi pracowników jest surowo zakazane.</li>
+                                                <li><strong>Social Scoring:</strong> Segmentacja ludzi w oparciu o zachowania społeczne.</li>
+                                                <li><strong>Masowy Scraping Twarzy:</strong> Pobieranie zdjęć z kamer CCTV.</li>
+                                            </ul>
+                                        </div>
+                                        <div class="risk-card highrisk-card">
+                                            <div class="risk-card-head">
+                                                <span class="badge highrisk-badge">Zatwierdzenie Zarządu (ExCom)</span>
+                                                <h4>Systemy Wysokiego Ryzyka</h4>
+                                            </div>
+                                            <p>Aplikacje decydujące o prawach życiowych lub bezpieczeństwie klientów. W banku:</p>
+                                            <ul class="checklist">
+                                                <li><strong>Ocena Zdolności Kredytowej:</strong> Systemy decydujące o przyznaniu kredytu klientowi.</li>
+                                                <li><strong>Rekrutacja i HR:</strong> Automatyczna filtracja nadesłanych CV.</li>
+                                                <li><strong>Profilowanie AML:</strong> Klasyfikacja transakcji pod kątem prania pieniędzy.</li>
+                                                <li><strong>Wymogi:</strong> Obowiązkowa opinia techniczna CISO, Ocena Skutków dla Ochrony Danych (DPIA) oraz ostateczne zatwierdzenie przez **Zarząd (ExCom)**.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 15: Our 6-Step AI Process -->
+                            <div class="slide" id="slide-15" data-title="Wewnętrzny Proces 6 Kroków" data-notes="Przedstaw ścieżkę 6 kroków z dokumentu AI Process v1.0. Podkreśl, że 'dzikie' wdrażanie AI (tzw. shadow IT) bez kwalifikacji IT, wpisu do bazy CMDB i testów jest niedopuszczalne.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">15 / 21</span>
+                                        <h3 class="slide-title">Wewnętrzny Proces Zgodności AI</h3>
+                                        <p class="slide-tagline">Proces AI v1.0: Sześć obowiązkowych kroków od pomysłu do wdrożenia narzędzia</p>
+                                    </div>
+                                    <div class="slide-body step-pipeline">
+                                        <div class="step-col">
+                                            <div class="step-header-card">
+                                                <span class="step-num">01</span>
+                                                <h5>Kwalifikacja</h5>
+                                            </div>
+                                            <p>Ryzyko IT ocenia na bazie kwestionariusza, czy dane oprogramowanie spełnia definicję systemów AI.</p>
+                                        </div>
+                                        <div class="step-col">
+                                            <div class="step-header-card">
+                                                <span class="step-num">02</span>
+                                                <h5>Klasyfikacja</h5>
+                                            </div>
+                                            <p>Określenie poziomu ryzyka (Zabroniony, Wysoki, Ograniczony, Minimalny) według Aktu o AI.</p>
+                                        </div>
+                                        <div class="step-col">
+                                            <div class="step-header-card">
+                                                <span class="step-num">03</span>
+                                                <h5>Rejestr CMDB</h5>
+                                            </div>
+                                            <p>Wpisanie oprogramowania do bazy aktywów IT z wyraźnym oznaczeniem jako 'AI System'.</p>
+                                        </div>
+                                        <div class="step-col">
+                                            <div class="step-header-card">
+                                                <span class="step-num">04</span>
+                                                <h5>Audyt i DPIA</h5>
+                                            </div>
+                                            <p>Szczegółowy audyt cyberbezpieczeństwa oraz formalna ocena skutków RODO (DPIA).</p>
+                                        </div>
+                                        <div class="step-col">
+                                            <div class="step-header-card">
+                                                <span class="step-num">05</span>
+                                                <h5>Zgody</h5>
+                                            </div>
+                                            <p>Niskie ryzyko zatwierdza CIO. Wysokie ryzyko wymaga wiążącej opinii CISO i zgody Zarządu (ExCom).</p>
+                                        </div>
+                                        <div class="step-col">
+                                            <div class="step-header-card">
+                                                <span class="step-num">06</span>
+                                                <h5>Monitoring</h5>
+                                            </div>
+                                            <p>Stały nadzór nad poprawnością działania modelu i coroczna recertyfikacja zgodności.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 16: Section Divider 5 -->
+                            <div class="slide" id="slide-16" data-title="Część 5: Złote Zasady" data-notes="Przejście do Części 5: Złote Zasady. Przygotuj uczestników na krótki interaktywny quiz z codziennych sytuacji w banku, który za chwilę wspólnie przeprowadzimy.">
+                                <div class="slide-container divider-layout">
+                                    <div class="divider-content">
+                                        <span class="divider-num">CZĘŚĆ 05</span>
+                                        <h2 class="divider-title">Złote Zasady w Codziennej Pracy</h2>
+                                        <p class="divider-text">Lista dobrych praktyk: jak efektywnie wspierać się narzędziami AI bez narażania banku na sankcje i wycieki danych.</p>
+                                        <div class="divider-graphic">
+                                            <span class="bubble">✏️</span>
+                                            <span class="bubble active">📋</span>
+                                            <span class="bubble">💡</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 17: DOs and DON'Ts Checklist -->
+                            <div class="slide" id="slide-17" data-title="Lista DOs & DON'Ts" data-notes="Dokładnie przejdź przez listę nakazów i zakazów. Podkreśl: używaj tylko licencjonowanych systemów zalogowanych przez @unicredit.pl, sprawdzaj wyniki przed wysłaniem, usuwaj wrażliwe dane osobowe klientów (zastępując je zwrotami np. Klient X). Kategorycznie unikaj darmowych darmowych rozwiązań do spraw bankowych i nie wdrażaj makr bezpośrednio do systemów produkcyjnych.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">17 / 21</span>
+                                        <h3 class="slide-title">Codzienna Lista Kontrolna</h3>
+                                        <p class="slide-tagline">Podstawowe zasady bezpiecznego i produktywnego korzystania ze sztucznej inteligencji</p>
+                                    </div>
+                                    <div class="slide-body grid-2">
+                                        <div class="rules-half dos-half">
+                                            <div class="rules-title">
+                                                <span class="rules-icon">✓</span>
+                                                <h4>DO — Korzystaj Mądrze i Zgodnie z Prawem</h4>
+                                            </div>
+                                            <ul class="checklist-items">
+                                                <li><strong>Wybieraj bezpieczne narzędzia:</strong> Pracuj wyłącznie na Gemini i NotebookLM zalogowanych na konto @unicredit.pl.</li>
+                                                <li><strong>Weryfikuj wyniki (Human-in-the-loop):</strong> Zawsze sprawdzaj wygenerowany kod, kwoty i dane przed ich wykorzystaniem.</li>
+                                                <li><strong>Anonimizuj zapytania:</strong> Zastępuj nazwy klientów i dane poufne ogólnymi sformułowaniami (np. "Klient A").</li>
+                                                <li><strong>Dbaj o edukację:</strong> Bierz aktywny udział w obowiązkowych szkoleniach z zakresu kompetencji AI (AI Literacy).</li>
+                                            </ul>
+                                        </div>
+                                        <div class="rules-half donts-half">
+                                            <div class="rules-title">
+                                                <span class="rules-icon">✗</span>
+                                                <h4>DON'T — Unikaj Ryzykownych Zachowań</h4>
+                                            </div>
+                                            <ul class="checklist-items">
+                                                <li><strong>Żadnych kont prywatnych:</strong> Nie loguj się na darmowe wersje ChatGPT, Claude czy prywatne adresy @gmail.com do zadań banku.</li>
+                                                <li><strong>Nie wgrywaj PII klientów:</strong> Zakaz przesyłania chronionych danych osobowych (RODO) bez dedykowanej analizy DPIA i rejestru.</li>
+                                                <li><strong>Brak 'Dzikich' Wdrożeń:</strong> Zakaz podłączania zewnętrznych API oraz pisania botów bez procedury IT i wpisu CMDB.</li>
+                                                <li><strong>Unikaj Zakazanych Praktyk:</strong> Nie wdrażaj ani nie szukaj narzędzi badających emocje i zaangażowanie pracowników.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 18: Section Divider 6 -->
+                            <div class="slide" id="slide-18" data-title="Część 6: Skalowanie" data-notes="Przejście do Części 6: Jak możemy wspólnie rozwijać Twoje innowacje. Jeżeli wymyśliłeś świetny prompt, nie trzymaj go tylko na swoim pulpicie – zgłoś go do nas, a my pomożemy Ci rozprzestrzenić go na cały bank.">
+                                <div class="slide-container divider-layout">
+                                    <div class="divider-content">
+                                        <span class="divider-num">CZĘŚĆ 06</span>
+                                        <h2 class="divider-title">Od Indywidualnej Iskry do Skali Banku</h2>
+                                        <p class="divider-text">Zgłaszanie innowacji: jak zespół zarządzania AI bierze na siebie audyt prawny, by wdrożyć Twój pomysł w całej instytucji.</p>
+                                        <div class="divider-graphic">
+                                            <span class="bubble">💡</span>
+                                            <span class="bubble active">📩</span>
+                                            <span class="bubble">🚀</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 19: The Enterprise Adoption Program [INTERACTIVE STEPS] -->
+                            <div class="slide" id="slide-19" data-title="Ścieżka Wdrażania Innowacji" data-notes="Opisz ramy Programu Wdrażania Innowacji. Jeśli stworzyłeś świetne rozwiązanie, wyślij opis na adres ai@unicredit.pl. Skontaktujemy się z Tobą, przejdziemy wspólnie przez kwestionariusz oceny ryzyka IT i pomożemy sfinalizować formalności prawne. Następnie opublikujemy Twój asystent dla wszystkich oddziałów, podpisując Cię jako jego twórcę!">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">19 / 21</span>
+                                        <h3 class="slide-title">Korporacyjny Program Skalowania AI</h3>
+                                        <p class="slide-tagline">Jak przekształcamy oddolne innowacje pracowników w oficjalne, bezpieczne narzędzia bankowe</p>
+                                    </div>
+                                    <div class="slide-body">
+                                        <!-- Interactive Progress Steps -->
+                                        <div class="adoption-pipeline-wrapper">
+                                            <div class="pipeline-progress-line">
+                                                <div class="pipeline-progress-fill" id="pipeline-progress-fill"></div>
+                                            </div>
+                                            <div class="pipeline-steps-grid">
+                                                <div class="pipeline-step active" data-step="1">
+                                                    <div class="pipeline-icon">💡</div>
+                                                    <h5>1. Pomysł (Spark)</h5>
+                                                    <p>Projektujesz skuteczny prompt lub zestaw źródeł w NotebookLM oszczędzający Twój czas.</p>
+                                                </div>
+                                                <div class="pipeline-step" data-step="2">
+                                                    <div class="pipeline-icon">📩</div>
+                                                    <h5>2. Zgłoszenie (Share)</h5>
+                                                    <p>Wysyłasz krótki opis, wzór promptu lub strukturę na dedykowany e-mail: <strong>ai@unicredit.pl</strong>.</p>
+                                                </div>
+                                                <div class="pipeline-step" data-step="3">
+                                                    <div class="pipeline-icon">⚖️</div>
+                                                    <h5>3. Współpraca (Align)</h5>
+                                                    <p>Nasz zespół bierze na siebie formalności: analizy DPIA, wpisy CMDB i dopasowanie do Aktu o AI.</p>
+                                                </div>
+                                                <div class="pipeline-step" data-step="4">
+                                                    <div class="pipeline-icon">🚀</div>
+                                                    <h5>4. Skalowanie (Scale)</h5>
+                                                    <p>Udostępniamy Twoje narzędzie w całym banku, wskazując Ciebie jako oficjalnego autora!</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Interactive Info Card for Steps -->
+                                        <div class="pipeline-info-card" id="pipeline-info-display">
+                                            <h4>Kliknij na dowolny etap powyższej ścieżki, aby poznać szczegóły!</h4>
+                                            <p>Dowiedz się, jak nasz zespół zarządzania AI pomoże Ci przeistoczyć lokalne makra i prompty w bezpieczne systemy korporacyjne.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 20: Support & Contacts -->
+                            <div class="slide" id="slide-20" data-title="Kontakty i Wsparcie" data-notes="Wyświetl najważniejsze skrzynki mailowe. Zapamiętajcie: ai@unicredit.pl do przesyłania pomysłów, cisooffice@unicredit.pl do zapytań o bezpieczeństwo lub zgłaszania incydentów oraz itgovernance@unicredit.be do rejestracji nowych zasobów IT.">
+                                <div class="slide-container list-layout">
+                                    <div class="slide-header">
+                                        <span class="slide-number">20 / 21</span>
+                                        <h3 class="slide-title">Kanały Kontaktu i Pomocy</h3>
+                                        <p class="slide-tagline">Skontaktuj się z odpowiednim zespołem ekspertów w celu zgłoszenia, zapytania lub zgłoszenia innowacji</p>
+                                    </div>
+                                    <div class="slide-body grid-3">
+                                        <div class="contact-card scale-glow">
+                                            <div class="contact-icon">🚀</div>
+                                            <h4>Innowacje i Skalowanie AI</h4>
+                                            <p class="contact-text">Przesyłaj udane szablony promptów, bazy NotebookLM oraz wszelkie pomysły automatyzacji pracy biurowej.</p>
+                                            <a href="mailto:ai@unicredit.pl" class="contact-email">ai@unicredit.pl</a>
+                                        </div>
+                                        <div class="contact-card">
+                                            <div class="contact-icon">🛡️</div>
+                                            <h4>Biuro CISO</h4>
+                                            <p class="contact-text">Pytania o Politykę AI, zgłaszanie incydentów bezpieczeństwa, wycieku haseł lub naruszeń etycznych systemów AI.</p>
+                                            <a href="mailto:cisooffice@unicredit.pl" class="contact-email">cisooffice@unicredit.pl</a>
+                                        </div>
+                                        <div class="contact-card">
+                                            <div class="contact-icon">⚙️</div>
+                                            <h4>Biuro Zarządzania IT</h4>
+                                            <p class="contact-text">Zgłoszenia oprogramowania do obowiązkowej kwalifikacji, rejestracja CMDB oraz audyt licencji dostawców.</p>
+                                            <a href="mailto:itgovernance@unicredit.be" class="contact-email">itgovernance@unicredit.be</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 21: Disclaimer & Q&A -->
+                            <div class="slide" id="slide-21" data-title="Klauzula Zgodności" data-notes="Wyświetl klauzulę prawną i otwórz dyskusję z publicznością. Wykorzystaj przygotowaną listę pytań (Q&A) w razie potrzeby. Podziękuj wszystkim serdecznie za obecność i aktywność!">
+                                <div class="slide-container cover-layout disclaimer-layout">
+                                    <div class="cover-content text-center">
+                                        <div class="disclaimer-title">KLAUZULA ZGODNOŚCI PRAWNEJ</div>
+                                        <p class="disclaimer-text">
+                                            Treści przedstawione podczas dzisiejszego szkolenia mają charakter wyłącznie edukacyjny i informacyjny. Wszystkie aktywne modele i systemy sztucznej inteligencji w Grupie UniCredit podlegają stałemu nadzorowi, rygorystycznym audytom bezpieczeństwa CISO oraz wewnętrznym przepisom. Pracownicy zobowiązani są do przestrzegania Polityki AI v1.1 oraz Procesu AI v1.0 w każdym momencie. Praca na darmowych darmowych czatach lub przesyłanie wrażliwych danych chronionych RODO podlega karom regulaminowym oraz prawnym.
+                                        </p>
+                                        <h2 class="qna-heading">Dziękuję za uwagę! Zapraszam do zadawania pytań</h2>
+                                        <p class="qna-subtitle">Kontakt do biura zarządzania: <strong>ai@unicredit.pl</strong> | <strong>cisooffice@unicredit.pl</strong></p>
+                                        <button class="btn btn-red mt-4" id="restart-slides-btn">Uruchom Slajdy od Nowa</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div> <!-- /slide-viewport -->
+
+                        <!-- Slides Control Footer -->
+                        <div class="slides-controls">
+                            <div class="slide-controls-left">
+                                <button class="btn btn-icon" id="prev-slide-btn" title="Poprzedni Slajd">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                </button>
+                                <span class="slide-tracker" id="slide-tracker-label">Slajd 1 z 21</span>
+                                <button class="btn btn-icon" id="next-slide-btn" title="Następny Slajd">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                                </button>
+                            </div>
+                            
+                            <div class="slide-controls-center">
+                                <button class="btn" id="play-slideshow-btn">
+                                    <svg viewBox="0 0 24 24" width="16" height="18" fill="currentColor" id="play-icon"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                    <svg viewBox="0 0 24 24" width="16" height="18" fill="currentColor" id="pause-icon" class="hidden"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                                    <span>Autoodtwarzanie</span>
+                                </button>
+                                <button class="btn btn-icon" id="notes-toggle-btn" title="Pokaż/Ukryj Notatki Prelegenta">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                </button>
+                            </div>
+
+                            <div class="slide-controls-right">
+                                <button class="btn btn-border" id="fs-slide-btn">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                                    Pełny Ekran
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Presenter Notes Box (Sylwia Szuba's Script) -->
+                    <div class="presenter-notes-panel" id="presenter-notes-panel">
+                        <div class="notes-header">
+                            <span class="notes-tag">🎤 INSTRUKCJE PRELEGENTA – SYLWIA SZUBA</span>
+                            <h4>Wskazówki i skrypt do slajdu</h4>
+                        </div>
+                        <div class="notes-content" id="presenter-notes-content">
+                            <!-- Populated dynamically by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HANDBOOK TAB -->
+        <section id="handbook-tab" class="tab-content">
+            <div class="handbook-layout">
+                <!-- Table of Contents Sidebar -->
+                <aside class="handbook-sidebar">
+                    <div class="sidebar-search">
+                        <input type="text" id="handbook-search" placeholder="Szukaj w podręczniku...">
+                    </div>
+                    <ul class="handbook-toc" id="handbook-toc-list">
+                        <!-- Populated dynamically by JS -->
+                    </ul>
+                </aside>
+
+                <!-- Handbook Content Scroll Area -->
+                <div class="handbook-reader" id="handbook-reader">
+                    <div class="handbook-container">
+                        <div class="handbook-header-box">
+                            <span class="h-badge">STANDARD ZGODNOŚCI UNICREDIT</span>
+                            <h2>Podręcznik Świadomości AI dla Pracowników</h2>
+                            <p class="h-sub">Bezpieczna i odpowiedzialna nawigacja w przyszłość usług bankowych</p>
+                            
+                            <div class="alert-box alert-note">
+                                <div class="alert-icon">💡</div>
+                                <div class="alert-text">
+                                    <strong>Przesłanie od Sylwii Szuby, AI Governance Lead & Foundation Domain Owner</strong><br>
+                                    Wkraczając w erę sztucznej inteligencji, UniCredit pozycjonuje się na czele innowacji finansowych. Naszą misją jest wykorzystanie bezprecedensowych możliwości analitycznych AI w codziennej pracy oraz lepszej obsłudze klientów. Jednak bankowość opiera się na bezwzględnym zaufaniu, poufności i ścisłej zgodności z przepisami prawa. Niniejszy podręcznik ma na celu wyposażenie każdego pracownika w wiedzę i drogowskazy niezbędne do bezpiecznego korzystania z narzędzi takich jak Google Gemini i NotebookLM. Wdrażajmy innowacje, ale róbmy to w sposób odpowiedzialny.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chapters will be injected here by JS for clean searching/filtering -->
+                        <div id="handbook-chapters-wrapper"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- QUIZ TAB -->
+        <section id="quiz-tab" class="tab-content">
+            <div class="quiz-layout">
+                <!-- Registration Screen -->
+                <div class="quiz-card" id="quiz-start-screen">
+                    <div class="quiz-icon-large">🎓</div>
+                    <h2>Wyzwanie Zgodności AI w UniCredit</h2>
+                    <p>Przed wdrożeniem innowacji upewnij się, że posiadasz odpowiedni poziom kompetencji. Weź udział w interaktywnym teście 5 pytań sytuacyjnych opartym na unijnym Akcie o AI oraz wewnętrznych procedurach, aby wygenerować cyfrowy Certyfikat Zgodności.</p>
+                    
+                    <form class="quiz-form" id="quiz-reg-form">
+                        <div class="form-group">
+                            <label for="student-name">Imię i Nazwisko Pracownika:</label>
+                            <input type="text" id="student-name" required placeholder="Sylwia Szuba" value="Sylwia Szuba">
+                        </div>
+                        <div class="form-group">
+                            <label for="student-dept">Obszar / Oddział Banku:</label>
+                            <input type="text" id="student-dept" required placeholder="AI Governance & Foundation Domain" value="AI Governance & Foundation Domain">
+                        </div>
+                        <button type="submit" class="btn btn-red btn-large">Rozpocznij Test Kompetencji</button>
+                    </form>
+                </div>
+
+                <!-- Quiz Play Screen -->
+                <div class="quiz-card hidden" id="quiz-play-screen">
+                    <div class="quiz-progress-wrapper">
+                        <span class="quiz-q-counter" id="quiz-q-counter">Pytanie 1 z 5</span>
+                        <div class="quiz-progress-bar">
+                            <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question-container">
+                        <div class="quiz-scenario-badge">PRAKTYCZNY SCENARIUSZ BANKOWY</div>
+                        <h3 class="quiz-question" id="quiz-question-text">Scenario Text</h3>
+                        
+                        <div class="quiz-options" id="quiz-options-container">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+
+                    <div class="quiz-explanation-box hidden" id="quiz-explanation-box">
+                        <div class="explanation-status" id="explanation-status-icon">✓</div>
+                        <div class="explanation-text-wrapper">
+                            <h4 id="explanation-status-title">Poprawna odpowiedź!</h4>
+                            <p id="explanation-text">Explanation details...</p>
+                        </div>
+                        <button class="btn btn-red" id="quiz-next-btn">Kolejny Scenariusz</button>
+                    </div>
+                </div>
+
+                <!-- Quiz Results / Certificate Screen -->
+                <div class="quiz-card hidden" id="quiz-result-screen">
+                    <div class="certificate-wrapper" id="certificate-print-area">
+                        <div class="cert-border">
+                            <div class="cert-inner">
+                                <div class="cert-header">
+                                    <div class="cert-logo">
+                                        <svg viewBox="0 0 100 100" width="60" height="60">
+                                            <circle cx="50" cy="50" r="46" fill="none" stroke="#cc0000" stroke-width="8"/>
+                                            <path d="M43 30 L43 70 M57 30 L57 70" stroke="#cc0000" stroke-width="8" stroke-linecap="round"/>
+                                        </svg>
+                                    </div>
+                                    <h3>GRUPA UNICREDIT</h3>
+                                    <span>BIURO GOVERNANCE AI POLSKA</span>
+                                </div>
+                                
+                                <div class="cert-title">Certyfikat Zgodności AI</div>
+                                <p class="cert-intro">Niniejszym zaświadcza się, że pracownik</p>
+                                <div class="cert-name" id="cert-employee-name">Sylwia Szuba</div>
+                                <p class="cert-intro">pomyślnie ukończył i wykazał się pełną znajomością procedur w szkoleniu</p>
+                                <div class="cert-course">Świadomość AI i Zgodność Regulacyjna w UniCredit</div>
+                                <p class="cert-details">
+                                    Szkolenie w pełni zintegrowane z **unijnym Aktem o Sztucznej Inteligencji (Rozporządzenie 2024/1689)**, 
+                                    **Polityką AI v1.1** oraz **Procesem AI v1.0** w zakresie bezpiecznych operacji w chmurze banku.
+                                </p>
+                                
+                                <div class="cert-footer">
+                                    <div class="cert-sig">
+                                        <div class="sig-line"></div>
+                                        <strong>Zespół Ryzyka IT i Zgodności</strong>
+                                        <span>UniCredit Group IT Governance</span>
+                                    </div>
+                                    <div class="cert-date-box">
+                                        <span class="cert-date" id="cert-completion-date">19 czerwca 2026</span>
+                                        <span>Data Wystawienia</span>
+                                    </div>
+                                    <div class="cert-sig">
+                                        <div class="sig-line-lead">Sylwia Szuba</div>
+                                        <strong>Sylwia Szuba</strong>
+                                        <span>AI Governance Lead & Domain Owner</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-result-actions">
+                        <p class="score-text">Twój wynik w teście zgodności to: <strong id="cert-score-label">5 na 5</strong>!</p>
+                        <button class="btn btn-red" id="print-certificate-btn">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="mr-2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            Wydrukuj Certyfikat
+                        </button>
+                        <button class="btn btn-border" id="restart-quiz-btn">Podejdź Ponownie</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECURE AI PLAYGROUND TAB -->
+        <section id="simulator-tab" class="tab-content">
+            <div class="simulator-layout">
+                <!-- Left Control Pane -->
+                <div class="simulator-sidebar">
+                    <div class="sim-header">
+                        <h3>Interaktywna Piaskownica</h3>
+                        <p>Porównaj bezpieczną licencję z kontami prywatnymi</p>
+                    </div>
+                    <div class="tool-selectors">
+                        <button class="tool-btn active" data-tool="gemini">
+                            <div class="tool-icon">♊</div>
+                            <div class="tool-info">
+                                <strong>Google Gemini</strong>
+                                <span>Tryb Bezpieczny Enterprise</span>
+                            </div>
+                        </button>
+                        <button class="tool-btn" data-tool="notebook">
+                            <div class="tool-icon">📓</div>
+                            <div class="tool-info">
+                                <strong>Google NotebookLM</strong>
+                                <span>Kontekstowanie Źródeł</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="playground-scenario-selector">
+                        <h4>Wypróbuj Scenariusze:</h4>
+                        <div id="playground-scenarios-box">
+                            <!-- Injected dynamically by JS depending on active tool -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Live Sandbox Screen -->
+                <div class="simulator-screen">
+                    <!-- GEMINI SIMULATOR SCREEN -->
+                    <div class="sim-active-box" id="sim-gemini-box">
+                        <div class="sim-screen-header">
+                            <div class="sim-status">
+                                <span class="status-dot pulsing"></span>
+                                <span class="status-label">Zabezpieczone Konto UniCredit Aktywne</span>
+                            </div>
+                            <span class="license-badge">Zgodne z CDPA (Bez uczenia modeli)</span>
+                        </div>
+                        <div class="chat-viewport" id="gemini-chat-viewport">
+                            <div class="chat-message bot-msg">
+                                <span class="chat-avatar">♊</span>
+                                <div class="msg-content">
+                                    <p>Witaj! Jestem asystentem <strong>Google Gemini</strong>, działającym w oparciu o bezpieczną korporacyjną licencję Grupy UniCredit.</p>
+                                    <p>Możesz tu pisać, planować, kodować i tłumaczyć w pełni bezpiecznie. Wybierz jeden z gotowych scenariuszy po lewej stronie lub wpisz własny prompt na dole czatu!</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-bar">
+                            <input type="text" id="gemini-chat-input" placeholder="Wpisz swój bezpieczny prompt lub zapytanie...">
+                            <button class="btn btn-red" id="gemini-send-btn">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- NOTEBOOKLM SIMULATOR SCREEN -->
+                    <div class="sim-active-box hidden" id="sim-notebook-box">
+                        <div class="sim-screen-header">
+                            <div class="sim-status">
+                                <span class="status-dot"></span>
+                                <span class="status-label">Tryb Zamkniętego Kontekstu</span>
+                            </div>
+                            <span class="source-counter-badge" id="source-counter-badge">Źródła: 2 pliki PDF</span>
+                        </div>
+                        <div class="notebook-grid">
+                            <!-- Injected Source Files Panel -->
+                            <div class="notebook-sources-panel">
+                                <h5>Aktywne Źródła w Projekcie</h5>
+                                <div class="source-files-list">
+                                    <div class="source-file-item active" data-source="policy">
+                                        <span class="file-icon">📄</span>
+                                        <div class="file-meta">
+                                            <strong>AI_Policy_v1.1.pdf</strong>
+                                            <span>266 Linijek</span>
+                                        </div>
+                                    </div>
+                                    <div class="source-file-item" data-source="process">
+                                        <span class="file-icon">📄</span>
+                                        <div class="file-meta">
+                                            <strong>AI_Process_v1.0.pdf</strong>
+                                            <span>185 Linijek</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="source-viewer-preview" id="source-preview-area">
+                                    <h5>Podgląd Fragmentu Dokumentu</h5>
+                                    <div class="snippet-content" id="source-snippet-text">
+                                        Wybierz dokument powyżej, aby prześledzić akapity źródłowe służące do uwiarygodnienia zapytań.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Section -->
+                            <div class="notebook-chat-section">
+                                <div class="chat-viewport" id="notebook-chat-viewport">
+                                    <div class="chat-message bot-msg">
+                                        <span class="chat-avatar">📓</span>
+                                        <div class="msg-content">
+                                            <p>Witaj w piaskownicy asystenta <strong>Google NotebookLM</strong>.</p>
+                                            <p>Moje odpowiedzi są **bezwzględnie oparte** na wgranych dokumentach: <strong>Polityce AI v1.1</strong> oraz <strong>Procesie AI v1.0</strong>. Odpowiadam wyłącznie w oparciu o ich treść i podaję klikalne odnośniki do konkretnych zdań regulaminów, co eliminuje powstawanie halucynacji.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="chat-input-bar">
+                                    <input type="text" id="notebook-chat-input" placeholder="Zadaj pytanie powiązane z wgranymi plikami banku...">
+                                    <button class="btn btn-red" id="notebook-send-btn">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SUBMIT IDEA / ADOPTION TAB -->
+        <section id="adoption-tab" class="tab-content">
+            <div class="adoption-layout-wrapper">
+                <div class="adoption-intro-box">
+                    <span class="a-badge">PROGRAM WDRAŻANIA INNOWACJI AI</span>
+                    <h2>Uwolnij i Skaluj Swój Pomysł na AI</h2>
+                    <p>Opracowałeś skuteczny prompt, który automatyzuje pisanie cotygodniowych zestawień? Masz przygotowany zestaw materiałów w NotebookLM oszczędzający 8 godzin analizy regulaminów? Zgłoś to do nas! Nasz zespół zarządzania AI zweryfikuje pomysł pod kątem zgodności z unijnym Aktem o AI, przygotuje wymagane analizy IT i sformalizuje proces ochrony danych RODO, udostępniając Twoje rozwiązanie jako bezpieczne narzędzie dla całego banku, wskazując Ciebie jako jego autora.</p>
+                </div>
+
+                <div class="adoption-grid">
+                    <!-- Submission Form Card -->
+                    <div class="adoption-form-card">
+                        <h3>Zgłoś Swój Projekt AI</h3>
+                        <form id="adoption-submission-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="sub-name">Imię i Nazwisko:</label>
+                                    <input type="text" id="sub-name" required value="Sylwia Szuba">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sub-email">Twój Służbowy Adres E-mail:</label>
+                                    <input type="email" id="sub-email" required value="sylwia.szuba@unicredit.pl">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="sub-dept">Twój Departament / Oddział:</label>
+                                    <input type="text" id="sub-dept" required value="Biuro Zarządzania i Zgodności AI">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sub-tool">Bezpieczne Narzędzie AI:</label>
+                                    <select id="sub-tool" required>
+                                        <option value="Google Gemini Enterprise">Google Gemini Enterprise</option>
+                                        <option value="Google NotebookLM Grounded">Google NotebookLM Grounded</option>
+                                        <option value="Własny skrypt / Integracja API">Własny skrypt / Integracja API</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="sub-title">Tytuł Twojego Projektu Innowacji:</label>
+                                <input type="text" id="sub-title" required placeholder="np. Asystent Analizy i Syntezy Umów Kredytowych w NotebookLM">
+                            </div>
+                            <div class="form-group">
+                                <label for="sub-desc">Dokładny Opis Prompów i Sposobu Działania:</label>
+                                <textarea id="sub-desc" rows="5" required placeholder="Wklej wzory Twoich sprawdzonych promptów, rodzaje załączanych plików lub szczegółowy opis przepływu pracy w asystencie..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="sub-benefits">Szacowana Tygodniowa Oszczędność Czasu i Korzyści:</label>
+                                <input type="text" id="sub-benefits" required placeholder="np. Oszczędza około 5 godzin tygodniowo na analityka poprzez szybsze wyciąganie krytycznych limitów z umów.">
+                            </div>
+                            <button type="submit" class="btn btn-red btn-large w-100" id="submit-innovation-btn">
+                                Prześlij Pomysł na ai@unicredit.pl 🚀
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Innovation Tracker / Live Queue Card -->
+                    <div class="adoption-queue-card">
+                        <div class="canvas-animation-container">
+                            <canvas id="email-flight-canvas"></canvas>
+                        </div>
+                        <h3>Zgłoszone Przez Ciebie Innowacje</h3>
+                        <p class="queue-sub">Monitoruj stan cyklu życia i weryfikacji Twoich pomysłów</p>
+                        
+                        <div class="submissions-list" id="local-submissions-list">
+                            <!-- Populated dynamically by JS -->
+                            <div class="sub-list-item empty-state">
+                                <span>Nie zarejestrowano jeszcze żadnych wniosków. Wyślij formularz po lewej stronie, aby zgłosić pomysł!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer-bar">
+        <span>&copy; 2026 Grupa UniCredit Biuro Zarządzania AI. Wyłącznie do autoryzowanego użytku wewnętrznego.</span>
+        <span>Tarcza Bezpieczeństwa Aktywna 🛡️</span>
+    </footer>
+
+    <!-- JS Source -->
+    <script src="app_pl.js"></script>
+</body>
+</html>
