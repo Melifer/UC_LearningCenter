@@ -190,22 +190,22 @@ function initializeDatabase() {
     }
   });
 
-  // Runtime migrations - add columns if missing
+  // Runtime migrations - add columns if missing (ignoruj błąd jeśli kolumna już istnieje)
   db.all("PRAGMA table_info(courses)", (err, columns) => {
     if (!columns) return;
     const names = columns.map(c => c.name);
     if (!names.includes('is_published')) {
-      db.run("ALTER TABLE courses ADD COLUMN is_published INTEGER DEFAULT 1");
+      db.run("ALTER TABLE courses ADD COLUMN is_published INTEGER DEFAULT 1", () => {});
     }
   });
   db.all("PRAGMA table_info(quiz_questions)", (err, columns) => {
     if (!columns) return;
     const names = columns.map(c => c.name);
     if (!names.includes('scenario')) {
-      db.run("ALTER TABLE quiz_questions ADD COLUMN scenario TEXT");
+      db.run("ALTER TABLE quiz_questions ADD COLUMN scenario TEXT", () => {});
     }
     if (!names.includes('explanation')) {
-      db.run("ALTER TABLE quiz_questions ADD COLUMN explanation TEXT");
+      db.run("ALTER TABLE quiz_questions ADD COLUMN explanation TEXT", () => {});
     }
   });
 }
