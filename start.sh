@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# BiBest Learning Center — skrypt uruchamiający
+# UniCredit Learning Center — skrypt uruchamiający
 # Uzycie:  ./start.sh
 # Stop:    Ctrl+C
 
@@ -14,7 +14,7 @@ ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo ""
 echo -e "${BLUE}================================================${NC}"
-echo -e "${BLUE}   BiBest Learning Center${NC}"
+echo -e "${BLUE}   UniCredit Learning Center${NC}"
 echo -e "${BLUE}================================================${NC}"
 echo ""
 
@@ -71,9 +71,8 @@ echo ""
 echo -e "  Otworz w przegladarce:  ${GREEN}http://localhost:3003${NC}"
 echo ""
 echo -e "${YELLOW}Konta testowe:${NC}"
-echo -e "  admin@test.com   / admin"
-echo -e "  trainer@test.com / trainer"
-echo -e "  user@test.com    / user"
+echo -e "  admin@unicredit.pl       / admin"
+echo -e "  jan.kowalski@unicredit.pl / user  (lub dowolny email)"
 echo ""
 echo -e "${YELLOW}Zatrzymanie: Ctrl+C${NC}"
 echo -e "${BLUE}================================================${NC}"

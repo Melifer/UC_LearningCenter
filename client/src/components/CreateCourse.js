@@ -19,7 +19,7 @@ function mdToHtml(text) {
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/^\- (.+)$/gm, '<li>$1</li>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:12px 0"/>')
@@ -110,7 +110,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
   const slideTextareaRef = useRef(null);
   const chapterTextareaRef = useRef(null);
-  const lessonTextareaRef = useRef(null);
+
 
   const loadCourse = useCallback(async () => {
     if (!editMode || !courseId) return;

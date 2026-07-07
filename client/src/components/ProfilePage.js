@@ -33,18 +33,6 @@ const ProfilePage = ({ user, onUserUpdate, showToast }) => {
     setSaving(false);
   };
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    if (pwForm.newPassword !== pwForm.confirmPassword) { showToast && showToast('Hasła nie są identyczne', 'error'); return; }
-    const res = await fetch(`http://localhost:3002/api/users/${user.id}/password`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword })
-    });
-    const data = await res.json();
-    if (res.ok) { showToast && showToast('Hasło zmienione', 'success'); setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' }); }
-    else showToast && showToast(data.error || 'Błąd', 'error');
-  };
-
   return (
     <div className="container profile-page">
       <div className="profile-header">
