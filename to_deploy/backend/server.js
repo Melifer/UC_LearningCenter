@@ -715,7 +715,7 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
 
     // Date
     doc.fontSize(11).font('Helvetica').fillColor('#555566')
-       .text(`Data ukończenia: ${completedDate}`, 32, 374, { width: W - 64, align: 'center' });
+       .text(`Completed: ${completedDate}`, 32, 374, { width: W - 64, align: 'center' });
 
     // Footer
     const sigY = H - 72;
@@ -728,7 +728,7 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
 
     doc.fontSize(9).font('Helvetica').fillColor('#555566')
        .text('UniCredit S.A.', W - 240, sigY + 6, { width: 180, align: 'center' })
-       .text('Spółka Akcyjna Oddział w Polsce', W - 240, sigY + 18, { width: 180, align: 'center' });
+       .text('Branch in Poland', W - 240, sigY + 18, { width: 180, align: 'center' });
 
     doc.end();
   });
@@ -994,7 +994,7 @@ app.get('/api/admin/stats', (req, res) => {
                 message: a.type === 'completed'
                   ? `${a.user_name} completed "${a.course_title}"`
                   : `${a.user_name} enrolled in "${a.course_title}"`,
-                time: new Date(a.completed_at || a.enrolled_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+                time: new Date(a.completed_at || a.enrolled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
               }));
 
               res.json({
