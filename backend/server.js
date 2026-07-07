@@ -223,7 +223,7 @@ async function createCourseFromParsed(parsed, createdBy) {
     const courseId = await new Promise((resolve, reject) =>
       db.run(
         'INSERT INTO courses (title, description, level, duration, created_by, status, mandatory, deadline, refresher_months) VALUES (?,?,?,?,?,?,?,?,?)',
-        [info.title, info.description, info.level, info.duration, createdBy, 'draft',
+        [info.title, info.description, info.level, info.duration, createdBy, parsed.status || 'draft',
          info.mandatory ? 1 : 0, info.deadline || null, info.refresher_months || 0],
         function(e) { e ? reject(e) : resolve(this.lastID); }
       )
@@ -326,11 +326,12 @@ async function createDefaultData() {
           try {
             const mdText = fs.readFileSync(mdPath, 'utf-8');
             const parsed = parseCourseMarkdown(mdText);
-            // Get admin user id
+            // Auto-publish seeded course
+            parsed.status = 'published';
             db.get("SELECT id FROM users WHERE role='admin' LIMIT 1", (err, adminUser) => {
               const adminId = adminUser ? adminUser.id : 1;
               createCourseFromParsed(parsed, adminId);
-              console.log('EBA ICT course loaded from markdown');
+              console.log('EBA ICT course loaded and published from markdown');
             });
           } catch (e) {
             console.error('Failed to load EBA course:', e.message);
