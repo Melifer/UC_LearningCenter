@@ -11,9 +11,9 @@ const ProfileePage = ({ user, onUserUpdate, showToast }) => {
   const [saving, setSaving] = useState(false);
 
   const fetchProfilee = useCallback(async () => {
-    const res = await fetch(`http://localhost:3002/api/users/${user.id}`);
+    const res = await fetch(`/api/users/${user.id}`);
     if (res.ok) { const d = await res.json(); setProfilee({ name: d.user.name || '', email: d.user.email || '' }); }
-    const certRes = await fetch(`http://localhost:3002/api/users/${user.id}/certificates`);
+    const certRes = await fetch(`/api/users/${user.id}/certificates`);
     if (certRes.ok) { const cd = await certRes.json(); setCerts(cd.certificates); setTotalCPE(cd.totalCPE); setYearCPE(cd.yearCPE); }
   }, [user.id]);
 
@@ -21,7 +21,7 @@ const ProfileePage = ({ user, onUserUpdate, showToast }) => {
 
   const handleSaveProfilee = async () => {
     setSaving(true);
-    const res = await fetch(`http://localhost:3002/api/users/${user.id}`, {
+    const res = await fetch(`/api/users/${user.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: profile.name, email: profile.email })
     });

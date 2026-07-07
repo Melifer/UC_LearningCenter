@@ -18,7 +18,7 @@ const QuizPage = ({ user }) => {
 
   const fetchQuizData = async () => {
     try {
-      const response = await fetch(`http://localhost:3002/api/courses/${courseId}`);
+      const response = await fetch(`/api/courses/${courseId}`);
       const courseData = await response.json();
       if (response.ok && courseData.quiz) {
         setQuiz(courseData.quiz);
@@ -43,7 +43,7 @@ const QuizPage = ({ user }) => {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:3002/api/quiz/submit', {
+      const res = await fetch('/api/quiz/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, quizId: quiz.id, answers: Object.values(answers) })
@@ -78,7 +78,7 @@ const QuizPage = ({ user }) => {
             </div>
             <div className="result-actions">
               {result.passed && (
-                <button className="button-primary" onClick={() => window.open(`http://localhost:3002/api/certificate/${user.id}/${courseId}`, '_blank')}>
+                <button className="button-primary" onClick={() => window.open(`/api/certificate/${user.id}/${courseId}`, '_blank')}>
                   🎓 Pobierz Certyfikat PDF
                 </button>
               )}

@@ -14,8 +14,8 @@ const CoursePage = ({ user, showToast }) => {
   const fetchAll = useCallback(async () => {
     try {
       const [courseRes, enrollRes] = await Promise.all([
-        fetch(`http://localhost:3002/api/courses/${courseId}`),
-        user ? fetch(`http://localhost:3002/api/my-courses/${user.id}`) : Promise.resolve(null),
+        fetch(`/api/courses/${courseId}`),
+        user ? fetch(`/api/my-courses/${user.id}`) : Promise.resolve(null),
       ]);
       const courseData = await courseRes.json();
       if (courseRes.ok) setCourse(courseData);
@@ -27,7 +27,7 @@ const CoursePage = ({ user, showToast }) => {
         // Course is completed only when quiz is passed (completed_at is set by quiz submit)
         setQuizPassed(!!(enrollment?.completed_at));
         if (enrollment && user) {
-          const progRes = await fetch(`http://localhost:3002/api/course/${courseId}/progress/${user.id}`);
+          const progRes = await fetch(`/api/course/${courseId}/progress/${user.id}`);
           if (progRes.ok) setProgress(await progRes.json());
         }
       }
@@ -41,7 +41,7 @@ const CoursePage = ({ user, showToast }) => {
     if (!user) { navigate('/login'); return; }
     setEnrolling(true);
     try {
-      const res = await fetch('http://localhost:3002/api/enroll', {
+      const res = await fetch('/api/enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, courseId: parseInt(courseId) })

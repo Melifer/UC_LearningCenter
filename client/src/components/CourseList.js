@@ -12,8 +12,8 @@ const CourseList = ({ user }) => {
   const fetchData = useCallback(async () => {
     try {
       const [allRes, myRes] = await Promise.all([
-        fetch(`http://localhost:3002/api/courses?role=${user?.role || 'user'}&userId=${user?.id || ''}`),
-        user ? fetch(`http://localhost:3002/api/my-courses/${user.id}`) : Promise.resolve(null),
+        fetch(`/api/courses?role=${user?.role || 'user'}&userId=${user?.id || ''}`),
+        user ? fetch(`/api/my-courses/${user.id}`) : Promise.resolve(null),
       ]);
       if (allRes.ok) setCourses((await allRes.json()).courses || []);
       if (myRes) { const d = await myRes.json(); setEnrolledIds(new Set((d.courses||[]).map(c => c.id))); }

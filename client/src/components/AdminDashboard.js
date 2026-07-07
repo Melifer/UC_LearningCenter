@@ -10,7 +10,7 @@ const AdminDashboard = ({ user, showToast }) => {
 
   const fetchCourses = useCallback(async () => {
     try {
-      const res = await fetch('http://localhost:3002/api/admin/courses');
+      const res = await fetch('/api/admin/courses');
       if (res.ok) setCourses((await res.json()).courses || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -20,7 +20,7 @@ const AdminDashboard = ({ user, showToast }) => {
 
   const handlePublish = async (courseId, publish) => {
     const endpoint = publish ? 'publish' : 'unpublish';
-    const res = await fetch(`http://localhost:3002/api/courses/${courseId}/${endpoint}`, {
+    const res = await fetch(`/api/courses/${courseId}/${endpoint}`, {
       method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}'
     });
     if (res.ok) { showToast && showToast(publish ? 'Course published ✓' : 'Course unpublished', 'success'); fetchCourses(); }
@@ -29,12 +29,12 @@ const AdminDashboard = ({ user, showToast }) => {
 
   const handleDelete = async (courseId, title) => {
     if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    const res = await fetch(`http://localhost:3002/api/admin/courses/${courseId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/admin/courses/${courseId}`, { method: 'DELETE' });
     if (res.ok) { showToast && showToast('Course deleted', 'success'); fetchCourses(); }
   };
 
   const handleDuplicate = async (courseId, title) => {
-    const res = await fetch(`http://localhost:3002/api/admin/courses/${courseId}/duplicate`, {
+    const res = await fetch(`/api/admin/courses/${courseId}/duplicate`, {
       method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ adminId: user.id })
     });
     const data = await res.json();

@@ -50,7 +50,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
   const loadCourse = useCallback(async () => {
     if (!editMode || !courseId) return;
     try {
-      const res  = await fetch(`http://localhost:3002/api/courses/${courseId}`);
+      const res  = await fetch(`/api/courses/${courseId}`);
       const data = await res.json();
       if (!res.ok || !data) return;
 
@@ -134,7 +134,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
       slides: [], handbook: [],
     };
     try {
-      const url = editMode ? `http://localhost:3002/api/admin/update-course/${courseId}` : 'http://localhost:3002/api/admin/create-course';
+      const url = editMode ? `/api/admin/update-course/${courseId}` : '/api/admin/create-course';
       const res = await fetch(url, { method: editMode?'PUT':'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       const data = await res.json();
       if (res.ok) {

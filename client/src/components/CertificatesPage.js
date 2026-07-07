@@ -9,7 +9,7 @@ const CertificatesPage = ({ user }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchCerts = useCallback(async () => {
-    const res = await fetch(`http://localhost:3002/api/users/${user.id}/certificates`);
+    const res = await fetch(`/api/users/${user.id}/certificates`);
     if (res.ok) { const d = await res.json(); setCerts(d.certificates); setTotalCPE(d.totalCPE); setYearCPE(d.yearCPE); }
     setLoading(false);
   }, [user.id]);
@@ -56,7 +56,7 @@ const CertificatesPage = ({ user }) => {
                 <p className="cert-cpe">{cert.cpeHours} CPE Hours</p>
               </div>
               <div className="cert-card-actions">
-                <a href={`http://localhost:3002/api/certificate/${user.id}/${cert.courseId}`} target="_blank" rel="noreferrer" className="button-primary cert-dl-btn">📄 Download PDF</a>
+                <a href={`/api/certificate/${user.id}/${cert.courseId}`} target="_blank" rel="noreferrer" className="button-primary cert-dl-btn">📄 Download PDF</a>
                 <button className="button-secondary" onClick={() => navigate(`/course/${cert.courseId}`)}>Course →</button>
               </div>
             </div>

@@ -18,7 +18,7 @@ const MarkdownImport = ({ showToast }) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('http://localhost:3002/api/admin/import-markdown', {
+      const res = await fetch('/api/admin/import-markdown', {
         method: 'POST',
         body: formData,
       });

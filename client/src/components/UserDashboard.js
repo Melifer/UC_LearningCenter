@@ -14,8 +14,8 @@ const UserDashboard = ({ user, showToast }) => {
   const fetchData = useCallback(async () => {
     try {
       const [allRes, myRes] = await Promise.all([
-        fetch(`http://localhost:3002/api/courses?role=user&userId=${user.id}`),
-        fetch(`http://localhost:3002/api/my-courses/${user.id}`),
+        fetch(`/api/courses?role=user&userId=${user.id}`),
+        fetch(`/api/my-courses/${user.id}`),
       ]);
       const allData = allRes.ok ? (await allRes.json()).courses || [] : [];
       const myData = myRes.ok ? (await myRes.json()).courses || [] : [];
@@ -25,7 +25,7 @@ const UserDashboard = ({ user, showToast }) => {
 
       if (myData.length > 0) {
         const progResults = await Promise.all(
-          myData.map(c => fetch(`http://localhost:3002/api/course/${c.id}/progress/${user.id}`)
+          myData.map(c => fetch(`/api/course/${c.id}/progress/${user.id}`)
             .then(r => r.json()).catch(() => ({})))
         );
         const map = {};
@@ -45,7 +45,7 @@ const UserDashboard = ({ user, showToast }) => {
 
   const handleStart = async (courseId) => {
     if (!isEnrolled(courseId)) {
-      const res = await fetch('http://localhost:3002/api/enroll', {
+      const res = await fetch('/api/enroll', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, courseId })
       });

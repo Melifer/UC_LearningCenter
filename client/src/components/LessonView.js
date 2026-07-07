@@ -55,7 +55,7 @@ const LessonView = ({ user, showToast }) => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3002/api/courses/${courseId}`);
+      const res = await fetch(`/api/courses/${courseId}`);
       const courseData = await res.json();
       if (!res.ok) return;
       setCourse(courseData);
@@ -70,7 +70,7 @@ const LessonView = ({ user, showToast }) => {
       setLesson(flat.find(l => l.id === parseInt(lessonId)) || null);
 
       if (user) {
-        const progRes = await fetch(`http://localhost:3002/api/course/${courseId}/progress/${user.id}`);
+        const progRes = await fetch(`/api/course/${courseId}/progress/${user.id}`);
         if (progRes.ok) {
           const progData = await progRes.json();
           setProgress(progData);
@@ -95,7 +95,7 @@ const LessonView = ({ user, showToast }) => {
     if (!user) return;
     setCompleting(true);
     try {
-      const res = await fetch('http://localhost:3002/api/lesson/complete', {
+      const res = await fetch('/api/lesson/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, lessonId: parseInt(lessonId) })

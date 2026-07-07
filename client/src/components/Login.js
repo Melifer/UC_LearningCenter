@@ -10,7 +10,7 @@ const Login = ({ onLogin }) => {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3002/api/auth/sso-login', {
+      const response = await fetch('/api/auth/sso-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
