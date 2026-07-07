@@ -1,24 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 const Header = ({ user, onLogout, theme, onThemeChange }) => {
-  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     const toggle = document.getElementById('theme-toggle');
     if (toggle) toggle.checked = theme === 'light';
   }, [theme]);
-
-  useEffect(() => {
-    if (!user) return;
-    const fetchUnread = () =>
-      fetch(`http://localhost:3002/api/messages/${user.id}/unread-count`)
-        .then(r => r.ok ? r.json() : null)
-        .then(d => d && setUnread(d.count));
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
-  }, [user]);
 
   const handleThemeChange = (e) => {
     onThemeChange && onThemeChange(e.target.checked ? 'light' : 'dark');
@@ -39,8 +27,7 @@ const Header = ({ user, onLogout, theme, onThemeChange }) => {
             </svg>
           </div>
           <div className="header-title-container">
-            <h1 className="header-title">BiBest Learning Center</h1>
-            <p className="header-subtitle">Professional Training Platform</p>
+            <h1 className="header-title">UniCredit Learning Center</h1>
           </div>
         </Link>
       </div>
@@ -52,9 +39,6 @@ const Header = ({ user, onLogout, theme, onThemeChange }) => {
           {user.role === 'admin' && (
             <Link to="/admin/create-course" className="nav-link">+ Nowy kurs</Link>
           )}
-          <Link to="/messages" className="nav-link nav-messages">
-            ✉️ {unread > 0 && <span className="nav-unread">{unread}</span>}
-          </Link>
         </nav>
       )}
       

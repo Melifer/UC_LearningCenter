@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 
 const STEPS = ['Podstawy', 'Moduły & Lekcje', 'Slajdy', 'Handbook', 'Quiz', 'Podgląd'];
 
@@ -95,11 +95,11 @@ const defaultQuestion = () => ({ question: '', scenario: '', options: ['', '', '
 const CreateCourse = ({ user, showToast, editMode = false }) => {
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const location = useLocation();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [trainerNotes, setTrainerNotes] = useState('');
 
-  const [info, setInfo] = useState({ title: '', description: '', level: 'Beginner', duration: '2 hours', price: 0, is_free: true, thumbnail: '' });
+  const [info, setInfo] = useState({ title: '', description: '', level: 'Intermediate', duration: '2 hours', thumbnail: '', mandatory: false, deadline: '', refresher_months: 0 });
   const [modules, setModules] = useState([defaultModule()]);
   const [slides, setSlides] = useState([defaultSlide()]);
   const [chapters, setChapters] = useState([defaultChapter()]);
@@ -129,11 +129,12 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
         setInfo({
           title: data.title,
           description: data.description || '',
-          level: data.level || 'Beginner',
+          level: data.level || 'Intermediate',
           duration: data.duration || '2 hours',
-          price: data.price || 0,
-          is_free: !!data.is_free,
-          thumbnail: data.thumbnail || ''
+          thumbnail: data.thumbnail || '',
+          mandatory: !!data.mandatory,
+          deadline: data.deadline || '',
+          refresher_months: data.refresher_months || 0
         });
 
         // Modules & lessons
@@ -187,6 +188,24 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
   }, [editMode, courseId]);
 
   useEffect(() => { loadCourse(); }, [loadCourse]);
+
+  // Pre-fill from markdown import
+  useEffect(() => {
+    const imported = location.state?.importedCourse;
+    if (!imported || editMode) return;
+    const { info: iInfo, modules: iModules, slides: iSlides, handbook: iHandbook, quiz: iQuiz } = imported;
+    if (iInfo) setInfo({ title: iInfo.title || '', description: iInfo.description || '', level: iInfo.level || 'Intermediate', duration: iInfo.duration || '2 hours', thumbnail: '', mandatory: !!iInfo.mandatory, deadline: iInfo.deadline || '', refresher_months: iInfo.refresher_months || 0 });
+    if (iModules?.length) setModules(iModules.map(m => ({ title: m.title, description: m.description || '', lessons: (m.lessons || []).map(l => ({ title: l.title, content: l.content || '', video_url: '', duration: l.duration || 15, type: 'text' })) })));
+    if (iSlides?.length) setSlides(iSlides.map(s => ({ title: s.title || '', content: s.content || '', notes: s.notes || '', layout: s.layout || 'default' })));
+    if (iHandbook?.length) setChapters(iHandbook.map(c => ({ title: c.title || '', content: c.content || '' })));
+    if (iQuiz?.questions?.length) {
+      setQuestions(iQuiz.questions.map(q => {
+        let opts = q.options;
+        if (typeof opts === 'string') { try { opts = JSON.parse(opts); } catch { opts = ['', '', '', '']; } }
+        return { question: q.question || '', scenario: q.scenario || '', options: opts || ['', '', '', ''], correct_answer: q.correct_answer || 0, explanation: q.explanation || '' };
+      }));
+    }
+  }, [location.state, editMode]);
 
   // ---- MODULE/LESSON HELPERS ----
   const addModule = () => { setModules([...modules, defaultModule()]); setActiveModuleIdx(modules.length); setActiveLessonIdx(0); };
@@ -245,15 +264,18 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
     [q[i], q[j]] = [q[j], q[i]]; setQuestions(q);
   };
 
-  const handleSubmit = async (isDraft = false, submitForReview = false) => {
+  const handleSubmit = async (isDraft = false) => {
     if (!info.title || !info.description) { showToast && showToast('Podaj tytuł i opis kursu', 'error'); return; }
     setSaving(true);
     const payload = {
       title: info.title, description: info.description, level: info.level, duration: info.duration,
-      price: info.is_free ? 0 : info.price, is_free: info.is_free, thumbnail: info.thumbnail,
-      trainer_id: user?.id,
+      thumbnail: info.thumbnail, trainer_id: user?.id,
+      mandatory: info.mandatory ? 1 : 0,
+      deadline: info.deadline || null,
+      refresher_months: parseInt(info.refresher_months) || 0,
+      status: isDraft ? 'draft' : 'published',
       modules: modules.map(m => ({ title: m.title, description: m.description, lessons: m.lessons.map(l => ({ title: l.title, content: l.content, video_url: l.video_url || null, duration: parseInt(l.duration) || 15 })) })),
-      quiz: { title: `${info.title} — Quiz`, passing_score: 80, questions: questions.map(q => ({ question: q.question, scenario: q.scenario, options: q.options, correct_answer: parseInt(q.correct_answer), explanation: q.explanation })) },
+      quiz: { title: `${info.title} — Quiz`, passing_score: 100, questions: questions.map(q => ({ question: q.question, scenario: q.scenario, options: q.options, correct_answer: parseInt(q.correct_answer), explanation: q.explanation })) },
       slides: slides.filter(s => s.title || s.content).map((s, i) => ({ title: s.title, content: s.content, notes: s.notes, layout: s.layout, slide_number: i + 1, order_index: i + 1 })),
       handbook: chapters.filter(c => c.title || c.content).map((c, i) => ({ title: c.title, content: c.content, chapter_number: i + 1, order_index: i + 1 })),
     };
@@ -264,17 +286,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
       if (res.ok) {
-        const savedCourseId = data.courseId || courseId;
-        // Set status
-        if (isDraft) {
-          await fetch(`http://localhost:3002/api/courses/${savedCourseId}/draft`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: '{}' });
-          showToast && showToast('Zapisano jako szkic', 'info');
-        } else if (submitForReview) {
-          await fetch(`http://localhost:3002/api/courses/${savedCourseId}/submit`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ trainer_notes: trainerNotes }) });
-          showToast && showToast('Kurs wysłany do weryfikacji!', 'success');
-        } else {
-          showToast && showToast(editMode ? 'Kurs zaktualizowany!' : 'Kurs opublikowany!', 'success');
-        }
+        showToast && showToast(isDraft ? 'Zapisano jako szkic' : editMode ? 'Kurs zaktualizowany!' : 'Kurs opublikowany!', isDraft ? 'info' : 'success');
         navigate('/');
       } else {
         showToast && showToast(data.error || 'Błąd zapisu', 'error');
@@ -310,7 +322,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
         <div className="builder-topbar-actions">
           <button className="button-secondary" onClick={() => navigate('/')}>Anuluj</button>
           <button className="button-secondary" onClick={() => handleSubmit(true)} disabled={saving}>💾 Zapisz szkic</button>
-          <button className="button-primary" onClick={() => handleSubmit(false, true)} disabled={saving}>{saving ? 'Zapisywanie...' : editMode ? '↑ Wyślij do weryfikacji' : '↑ Wyślij do weryfikacji'}</button>
+          <button className="button-primary" onClick={() => handleSubmit(false)} disabled={saving}>{saving ? 'Zapisywanie...' : editMode ? '✓ Zaktualizuj' : '✓ Publikuj'}</button>
         </div>
       </div>
 
@@ -319,43 +331,50 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
         {/* STEP 0: Course Info */}
         {step === 0 && (
           <div className="builder-step-content">
-            <div className="builder-step-header"><h2>Podstawy kursu</h2><p>Podaj kluczowe informacje o kursie. To pierwsza rzecz jaką widzą uczniowie.</p></div>
+            <div className="builder-step-header"><h2>Podstawy szkolenia</h2><p>Podaj kluczowe informacje o szkoleniu.</p></div>
             <div className="builder-form-grid">
               <div className="builder-form-main">
-                <div className="bf-group"><label>Tytuł kursu *</label><input type="text" value={info.title} onChange={e => setInfo({...info, title: e.target.value})} placeholder="np. Sztuka Promptowania AI: Gemini Masterclass" /></div>
-                <div className="bf-group"><label>Opis kursu *</label><textarea value={info.description} onChange={e => setInfo({...info, description: e.target.value})} rows="4" placeholder="Opisz czego się uczniowie nauczą, dla kogo jest kurs, jakie są wymagania..." /></div>
+                <div className="bf-group"><label>Tytuł szkolenia *</label><input type="text" value={info.title} onChange={e => setInfo({...info, title: e.target.value})} placeholder="np. EBA ICT & Security Risk Management Guidelines" /></div>
+                <div className="bf-group"><label>Opis *</label><textarea value={info.description} onChange={e => setInfo({...info, description: e.target.value})} rows="4" placeholder="Opisz zakres szkolenia, wymagania regulacyjne, do kogo jest skierowane..." /></div>
                 <div className="bf-grid-2">
                   <div className="bf-group"><label>Poziom trudności</label>
                     <select value={info.level} onChange={e => setInfo({...info, level: e.target.value})}>
                       <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
                     </select>
                   </div>
-                  <div className="bf-group"><label>Czas trwania</label><input type="text" value={info.duration} onChange={e => setInfo({...info, duration: e.target.value})} placeholder="np. 4 hours" /></div>
+                  <div className="bf-group"><label>Czas trwania</label><input type="text" value={info.duration} onChange={e => setInfo({...info, duration: e.target.value})} placeholder="np. 3 hours" /></div>
                 </div>
-                <div className="bf-group price-group">
-                  <label className="checkbox-label"><input type="checkbox" checked={info.is_free} onChange={e => setInfo({...info, is_free: e.target.checked})} /> Kurs bezpłatny</label>
-                  {!info.is_free && <input type="number" value={info.price} onChange={e => setInfo({...info, price: parseFloat(e.target.value)})} placeholder="Cena w USD" />}
+                <div className="bf-grid-2">
+                  <div className="bf-group">
+                    <label className="checkbox-label">
+                      <input type="checkbox" checked={info.mandatory} onChange={e => setInfo({...info, mandatory: e.target.checked})} />
+                      <span>Szkolenie obowiązkowe</span>
+                    </label>
+                  </div>
+                  <div className="bf-group"><label>Refresher co (miesięcy, 0=brak)</label><input type="number" min="0" value={info.refresher_months} onChange={e => setInfo({...info, refresher_months: parseInt(e.target.value) || 0})} placeholder="np. 12" /></div>
                 </div>
+                <div className="bf-group"><label>Termin realizacji (opcjonalnie)</label><input type="date" value={info.deadline || ''} onChange={e => setInfo({...info, deadline: e.target.value})} /></div>
               </div>
               <div className="builder-form-side">
                 <div className="course-preview-card">
-                  <div className="preview-thumb" style={{background: 'linear-gradient(135deg, #cc0000 0%, #1c1e2a 100%)'}} />
+                  <div className="preview-thumb" style={{background: 'linear-gradient(135deg, #da291c 0%, #1a1a2e 100%)'}} />
                   <div className="preview-info">
-                    <h3>{info.title || 'Tytuł kursu'}</h3>
-                    <p>{info.description?.substring(0, 80) || 'Opis kursu...'}</p>
+                    <h3>{info.title || 'Tytuł szkolenia'}</h3>
+                    <p>{info.description?.substring(0, 80) || 'Opis szkolenia...'}</p>
                     <div className="preview-badges">
                       <span>{info.level}</span>
                       <span>{info.duration}</span>
-                      <span>{info.is_free ? 'FREE' : `$${info.price}`}</span>
+                      {info.mandatory && <span style={{color:'#da291c',fontWeight:700}}>OBOWIĄZKOWE</span>}
+                      {info.refresher_months > 0 && <span>♻️ co {info.refresher_months} mies.</span>}
                     </div>
                   </div>
                 </div>
                 <div className="builder-tips">
                   <h4>💡 Wskazówki</h4>
                   <ul>
-                    <li>Dobry tytuł = konkretna obietnica wartości</li>
-                    <li>Opis powinien zawierać "czego się nauczysz"</li>
-                    <li>Podaj realistyczny czas ukończenia</li>
+                    <li>Zaznacz "obowiązkowe" jeśli wymagane przez regulacje</li>
+                    <li>Refresher = automatyczne wezwanie do odnowienia</li>
+                    <li>Termin = deadline widoczny dla pracowników</li>
                   </ul>
                 </div>
               </div>
@@ -584,16 +603,9 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
               </div>
             </div>
             <div className="preview-publish-actions">
-              <button className="button-secondary btn-large" onClick={() => setStep(0)}>← Edytuj kurs</button>
-              <button className="button-secondary btn-large" onClick={() => handleSubmit(true, false)} disabled={saving}>💾 Zapisz szkic</button>
-              <button className="button-primary btn-large" onClick={() => handleSubmit(false, true)} disabled={saving}>{saving ? 'Wysyłanie...' : '↑ Wyślij do weryfikacji'}</button>
-            </div>
-            <div className="builder-step-header" style={{marginTop:'32px'}}>
-              <h3>Uwagi dla admina (opcjonalnie)</h3>
-              <p>Możesz dodać komentarz — sugestię ceny, pytania, uwagi do kursu.</p>
-            </div>
-            <div className="bf-group">
-              <textarea value={trainerNotes} onChange={e => setTrainerNotes(e.target.value)} rows="4" placeholder="np. Proponowana cena: 199 PLN. Kurs ukończyłem testy na grupie 10 osób..." />
+              <button className="button-secondary btn-large" onClick={() => setStep(0)}>← Edytuj</button>
+              <button className="button-secondary btn-large" onClick={() => handleSubmit(true)} disabled={saving}>💾 Zapisz szkic</button>
+              <button className="button-primary btn-large" onClick={() => handleSubmit(false)} disabled={saving}>{saving ? 'Publikowanie...' : editMode ? '✓ Zaktualizuj' : '✓ Publikuj szkolenie'}</button>
             </div>
           </div>
         )}

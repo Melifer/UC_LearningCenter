@@ -4,13 +4,17 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const PDFDocument = require('pdfkit');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
+const { parseCourseMarkdown } = require('./utils/markdownParser');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Połączenie z bazą danych SQLite
 const db = new sqlite3.Database('./learning_center.db', (err) => {
@@ -190,13 +194,17 @@ function initializeDatabase() {
     }
   });
 
-  // Runtime migrations - add columns if missing (ignoruj błąd jeśli kolumna już istnieje)
+  // Runtime migrations - add columns if missing
   db.all("PRAGMA table_info(courses)", (err, columns) => {
     if (!columns) return;
     const names = columns.map(c => c.name);
-    if (!names.includes('is_published')) {
-      db.run("ALTER TABLE courses ADD COLUMN is_published INTEGER DEFAULT 1", () => {});
-    }
+    if (!names.includes('is_published')) db.run("ALTER TABLE courses ADD COLUMN is_published INTEGER DEFAULT 1", () => {});
+    if (!names.includes('status')) db.run("ALTER TABLE courses ADD COLUMN status TEXT DEFAULT 'published'", () => {});
+    if (!names.includes('mandatory')) db.run("ALTER TABLE courses ADD COLUMN mandatory INTEGER DEFAULT 0", () => {});
+    if (!names.includes('deadline')) db.run("ALTER TABLE courses ADD COLUMN deadline TEXT", () => {});
+    if (!names.includes('refresher_months')) db.run("ALTER TABLE courses ADD COLUMN refresher_months INTEGER DEFAULT 0", () => {});
+    if (!names.includes('trainer_notes')) db.run("ALTER TABLE courses ADD COLUMN trainer_notes TEXT", () => {});
+    if (!names.includes('rejection_reason')) db.run("ALTER TABLE courses ADD COLUMN rejection_reason TEXT", () => {});
   });
   db.all("PRAGMA table_info(quiz_questions)", (err, columns) => {
     if (!columns) return;
@@ -209,9 +217,74 @@ function initializeDatabase() {
     }
   });
 }
+async function createCourseFromParsed(parsed, createdBy) {
+  try {
+    const { info, modules, slides, handbook, quiz, passing_score } = parsed;
+    const courseId = await new Promise((resolve, reject) =>
+      db.run(
+        'INSERT INTO courses (title, description, level, duration, created_by, status, mandatory, deadline, refresher_months) VALUES (?,?,?,?,?,?,?,?,?)',
+        [info.title, info.description, info.level, info.duration, createdBy, 'draft',
+         info.mandatory ? 1 : 0, info.deadline || null, info.refresher_months || 0],
+        function(e) { e ? reject(e) : resolve(this.lastID); }
+      )
+    );
+
+    for (const [mi, mod] of (modules || []).entries()) {
+      const modId = await new Promise((resolve, reject) =>
+        db.run('INSERT INTO modules (course_id, title, description, order_index) VALUES (?,?,?,?)',
+          [courseId, mod.title, mod.description || '', mi + 1],
+          function(e) { e ? reject(e) : resolve(this.lastID); })
+      );
+      for (const [li, lesson] of (mod.lessons || []).entries()) {
+        await new Promise(resolve =>
+          db.run('INSERT INTO lessons (module_id, title, content, video_url, duration, order_index) VALUES (?,?,?,?,?,?)',
+            [modId, lesson.title, lesson.content, lesson.video_url || null, lesson.duration || 15, li + 1], resolve)
+        );
+      }
+    }
+
+    for (const s of (slides || [])) {
+      await new Promise(resolve =>
+        db.run('INSERT INTO slides (course_id, slide_number, title, content, notes, order_index) VALUES (?,?,?,?,?,?)',
+          [courseId, s.slide_number, s.title, s.content, s.notes || '', s.order_index], resolve)
+      );
+    }
+
+    for (const c of (handbook || [])) {
+      await new Promise(resolve =>
+        db.run('INSERT INTO handbook (course_id, chapter_number, title, content, order_index) VALUES (?,?,?,?,?)',
+          [courseId, c.chapter_number, c.title, c.content, c.order_index], resolve)
+      );
+    }
+
+    if (quiz && quiz.questions && quiz.questions.length > 0) {
+      const quizId = await new Promise((resolve, reject) =>
+        db.run('INSERT INTO quizzes (course_id, title, passing_score) VALUES (?,?,?)',
+          [courseId, `${info.title} — Quiz`, quiz.passing_score || passing_score || 100],
+          function(e) { e ? reject(e) : resolve(this.lastID); })
+      );
+      for (const q of quiz.questions) {
+        await new Promise(resolve =>
+          db.run('INSERT INTO quiz_questions (quiz_id, question, options, correct_answer, scenario, explanation) VALUES (?,?,?,?,?,?)',
+            [quizId, q.question, q.options, q.correct_answer, q.scenario || null, q.explanation || null], resolve)
+        );
+      }
+    }
+
+    console.log(`Course created from markdown: "${info.title}" (id=${courseId})`);
+    return courseId;
+  } catch (err) {
+    console.error('Error creating course from parsed markdown:', err.message);
+    throw err;
+  }
+}
+
 async function createDefaultData() {
-  // Użytkownicy testowi
+  // Konta testowe / demo
   const defaultUsers = [
+    { email: 'admin@unicredit.pl', password: 'admin', role: 'admin', name: 'Admin UniCredit' },
+    { email: 'jan.kowalski@unicredit.pl', password: 'user', role: 'user', name: 'Jan Kowalski' },
+    // Legacy test accounts
     { email: 'admin@test.com', password: 'admin', role: 'admin', name: 'Admin User' },
     { email: 'user@test.com', password: 'user', role: 'user', name: 'John Doe' }
   ];
@@ -231,12 +304,28 @@ async function createDefaultData() {
     });
   }
 
-  // Sprawdź czy już są kursy w bazie
-  db.get('SELECT COUNT(*) as count FROM courses', async (err, row) => {
-    if (!err && row.count === 0) {
-      createSampleCourses();
-    }
-  });
+  // Załaduj kurs EBA z markdown jeśli baza jest pusta
+  setTimeout(() => {
+    db.get('SELECT COUNT(*) as count FROM courses', (err, row) => {
+      if (!err && row.count === 0) {
+        const mdPath = path.join(__dirname, '../docs/courses/eba-ict-security-risk-management.md');
+        if (fs.existsSync(mdPath)) {
+          try {
+            const mdText = fs.readFileSync(mdPath, 'utf-8');
+            const parsed = parseCourseMarkdown(mdText);
+            // Get admin user id
+            db.get("SELECT id FROM users WHERE role='admin' LIMIT 1", (err, adminUser) => {
+              const adminId = adminUser ? adminUser.id : 1;
+              createCourseFromParsed(parsed, adminId);
+              console.log('EBA ICT course loaded from markdown');
+            });
+          } catch (e) {
+            console.error('Failed to load EBA course:', e.message);
+          }
+        }
+      }
+    });
+  }, 1000); // Delay to ensure users are created first
 }
 
 // Tworzenie przykładowych kursów
@@ -428,53 +517,73 @@ app.post('/api/register', async (req, res) => {
   });
 });
 
-// Endpoint logowania
-app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
+// ============ SSO-PREP AUTH ============
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password are required' });
-  }
+function nameFromEmail(email) {
+  const local = (email || '').split('@')[0];
+  return local.split('.').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ') || email;
+}
+
+// SSO-prep login: accepts email only, auto-creates user if not exists
+app.post('/api/auth/sso-login', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
 
   db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
+    if (user) {
+      return res.json({
+        message: 'Login successful',
+        user: { id: user.id, email: user.email, role: user.role, name: user.name || nameFromEmail(user.email) }
+      });
+    }
+
+    // Auto-provision new user
+    const name = nameFromEmail(email);
+    const hashedPassword = await bcrypt.hash(Math.random().toString(36), 10);
+    db.run('INSERT INTO users (email, password, role, name) VALUES (?, ?, ?, ?)',
+      [email, hashedPassword, 'user', name],
+      function(err) {
+        if (err) return res.status(500).json({ error: 'Error creating user' });
+        res.status(201).json({
+          message: 'User provisioned and logged in',
+          user: { id: this.lastID, email, role: 'user', name }
+        });
+      }
+    );
+  });
+});
+
+// Legacy password login (kept for admin CLI/testing)
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+  db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
     try {
       const match = await bcrypt.compare(password, user.password);
       if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-
-      res.json({
-        message: 'Login successful',
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          name: user.name
-        }
-      });
+      res.json({ message: 'Login successful', user: { id: user.id, email: user.email, role: user.role, name: user.name } });
     } catch (error) {
       res.status(500).json({ error: 'Error verifying password' });
     }
   });
 });
 
-// Pobierz wszystkie kursy (tylko zatwierdzone dla zwykłych users)
+// Pobierz wszystkie kursy
 app.get('/api/courses', (req, res) => {
-  const { role, userId } = req.query;
-  
+  const { role } = req.query;
   let query;
-  let params = [];
 
   if (role === 'admin') {
-    // Admin widzi wszystko
-    query = 'SELECT * FROM courses ORDER BY created_at DESC';
+    query = `SELECT c.*, (SELECT COUNT(*) FROM enrollments WHERE course_id=c.id) as enrolled_count FROM courses c ORDER BY c.created_at DESC`;
   } else {
-    // User widzi tylko zatwierdzone
-    query = `SELECT * FROM courses WHERE status = 'approved' OR status IS NULL ORDER BY created_at DESC`;
+    query = `SELECT c.*, (SELECT COUNT(*) FROM enrollments WHERE course_id=c.id) as enrolled_count FROM courses c WHERE c.status='published' OR c.status='approved' OR c.status IS NULL ORDER BY c.created_at DESC`;
   }
 
-  db.all(query, params, (err, courses) => {
+  db.all(query, [], (err, courses) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     res.json({ courses });
   });
@@ -531,30 +640,18 @@ app.get('/api/courses/:id', (req, res) => {
 app.post('/api/enroll', (req, res) => {
   const { userId, courseId } = req.body;
 
-  // Sprawdź czy użytkownik już jest zapisany
   db.get('SELECT * FROM enrollments WHERE user_id = ? AND course_id = ?', [userId, courseId], (err, enrollment) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     if (enrollment) return res.status(400).json({ error: 'Already enrolled in this course' });
 
-    // Sprawdź czy kurs jest darmowy
-    db.get('SELECT * FROM courses WHERE id = ?', [courseId], (err, course) => {
-      if (err || !course) return res.status(404).json({ error: 'Course not found' });
-
-      const paymentStatus = course.is_free ? 'completed' : 'pending';
-
-      db.run(
-        'INSERT INTO enrollments (user_id, course_id, payment_status) VALUES (?, ?, ?)',
-        [userId, courseId, paymentStatus],
-        function(err) {
-          if (err) return res.status(500).json({ error: 'Error enrolling in course' });
-          res.status(201).json({
-            message: 'Enrolled successfully',
-            enrollmentId: this.lastID,
-            paymentRequired: !course.is_free
-          });
-        }
-      );
-    });
+    db.run(
+      'INSERT INTO enrollments (user_id, course_id, payment_status) VALUES (?, ?, ?)',
+      [userId, courseId, 'completed'],
+      function(err) {
+        if (err) return res.status(500).json({ error: 'Error enrolling in course' });
+        res.status(201).json({ message: 'Enrolled successfully', enrollmentId: this.lastID, paymentRequired: false });
+      }
+    );
   });
 });
 
@@ -701,76 +798,79 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
     // Red accent bar top
     doc.rect(8, 0, W - 16, 6).fill('#cc0000');
 
-    // Red accent bar bottom
-    doc.rect(8, H - 6, W - 16, 6).fill('#cc0000');
+    // Background - clean white
+    doc.rect(0, 0, W, H).fill('#ffffff');
 
-    // Red accent bar right
-    doc.rect(W - 8, 0, 8, H).fill('#cc0000');
+    // UniCredit red left bar
+    doc.rect(0, 0, 12, H).fill('#da291c');
 
-    // Inner subtle border
-    doc.rect(24, 20, W - 48, H - 40).lineWidth(0.5).stroke('rgba(255,255,255,0.1)');
+    // Red top accent
+    doc.rect(12, 0, W - 12, 8).fill('#da291c');
 
-    // Header: Logo area
-    doc.circle(60, 50, 18).lineWidth(3).stroke('#cc0000');
-    doc.arc(60, 50, 13, Math.PI * 0.2, Math.PI * 0.8).lineWidth(3).stroke('#cc0000');
+    // Light gray background area
+    doc.rect(12, 8, W - 12, H - 8).fill('#fafafa');
 
-    doc.fontSize(13).font('Helvetica-Bold').fillColor('#ffffff')
-       .text('Learning Center', 90, 40);
-    doc.fontSize(9).font('Helvetica').fillColor('#888888')
-       .text('Professional Training Platform', 90, 56);
+    // Header area - white panel
+    doc.rect(32, 24, W - 64, 70).fill('#ffffff').stroke('#e0e0e8');
+
+    // UniCredit name in header
+    doc.fontSize(18).font('Helvetica-Bold').fillColor('#da291c')
+       .text('UniCredit', 52, 38);
+    doc.fontSize(11).font('Helvetica').fillColor('#555566')
+       .text('Learning Center', 52, 60);
 
     // Cert ID top right
-    doc.fontSize(8).fillColor('#555555')
-       .text(certId, W - 260, 45, { width: 220, align: 'right' });
+    doc.fontSize(8).font('Helvetica').fillColor('#999999')
+       .text(`Certyfikat nr: ${certId}`, W - 280, 50, { width: 240, align: 'right' });
 
-    // Main "Certificate of Completion" title
-    doc.fontSize(36).font('Helvetica-Bold').fillColor('#cc0000')
-       .text('Certificate of Completion', 60, 95, { width: W - 120, align: 'center' });
+    // Main title
+    doc.fontSize(30).font('Helvetica-Bold').fillColor('#da291c')
+       .text('CERTYFIKAT UKOŃCZENIA', 32, 118, { width: W - 64, align: 'center' });
 
     // Decorative line
-    doc.moveTo(W * 0.2, 145).lineTo(W * 0.8, 145).lineWidth(1).stroke('#cc0000');
+    doc.moveTo(W * 0.25, 160).lineTo(W * 0.75, 160).lineWidth(1.5).stroke('#da291c');
 
-    // "This is to certify that"
-    doc.fontSize(12).font('Helvetica').fillColor('#aaaaaa')
-       .text('This is to certify that', 60, 160, { width: W - 120, align: 'center' });
+    // "Niniejszym zaświadcza się, że"
+    doc.fontSize(11).font('Helvetica').fillColor('#666677')
+       .text('Niniejszym zaświadcza się, że', 32, 176, { width: W - 64, align: 'center' });
 
-    // Participant name
-    doc.fontSize(30).font('Helvetica-Bold').fillColor('#ffffff')
-       .text(data.name, 60, 182, { width: W - 120, align: 'center' });
+    // Participant name — derived from email if needed
+    const displayName = (data.name && data.name.trim()) ? data.name : nameFromEmail(data.email);
+    doc.fontSize(28).font('Helvetica-Bold').fillColor('#1a1a2e')
+       .text(displayName, 32, 198, { width: W - 64, align: 'center' });
 
-    // "has successfully completed"
-    doc.fontSize(12).font('Helvetica').fillColor('#aaaaaa')
-       .text('has successfully completed', 60, 222, { width: W - 120, align: 'center' });
+    // "ukończył(a) szkolenie"
+    doc.fontSize(11).font('Helvetica').fillColor('#666677')
+       .text('ukończył(a) z wynikiem pozytywnym szkolenie', 32, 238, { width: W - 64, align: 'center' });
 
     // Course title
-    doc.fontSize(20).font('Helvetica-Bold').fillColor('#cc0000')
-       .text(data.title, 80, 242, { width: W - 160, align: 'center' });
+    doc.fontSize(18).font('Helvetica-Bold').fillColor('#da291c')
+       .text(data.title, 60, 260, { width: W - 120, align: 'center' });
 
-    // CPE badge box
-    const badgeY = 290;
-    doc.rect(W/2 - 80, badgeY, 160, 44).fill('#1c1e2a');
-    doc.rect(W/2 - 80, badgeY, 160, 44).lineWidth(1).stroke('#cc0000');
-    doc.fontSize(22).font('Helvetica-Bold').fillColor('#cc0000')
-       .text(`${cpeHours} CPE`, W/2 - 80, badgeY + 6, { width: 160, align: 'center' });
-    doc.fontSize(9).font('Helvetica').fillColor('#888888')
-       .text('Continuing Professional Education Hours', W/2 - 80, badgeY + 29, { width: 160, align: 'center' });
+    // CPE badge
+    const badgeY = 308;
+    doc.rect(W/2 - 90, badgeY, 180, 48).fill('#1a1a2e');
+    doc.fontSize(22).font('Helvetica-Bold').fillColor('#da291c')
+       .text(`${cpeHours} CPE`, W/2 - 90, badgeY + 6, { width: 180, align: 'center' });
+    doc.fontSize(9).font('Helvetica').fillColor('#aaaaaa')
+       .text('Continuing Professional Education Hours', W/2 - 90, badgeY + 30, { width: 180, align: 'center' });
 
     // Date
-    doc.fontSize(11).font('Helvetica').fillColor('#aaaaaa')
-       .text(`Completed: ${completedDate}`, 60, 350, { width: W - 120, align: 'center' });
+    doc.fontSize(11).font('Helvetica').fillColor('#555566')
+       .text(`Data ukończenia: ${completedDate}`, 32, 374, { width: W - 64, align: 'center' });
 
-    // Footer: signatures
-    const sigY = H - 80;
-    doc.moveTo(80, sigY).lineTo(240, sigY).lineWidth(0.5).stroke('#444444');
-    doc.moveTo(W - 240, sigY).lineTo(W - 80, sigY).lineWidth(0.5).stroke('#444444');
+    // Footer
+    const sigY = H - 72;
+    doc.moveTo(60, sigY).lineTo(240, sigY).lineWidth(0.5).stroke('#cccccc');
+    doc.moveTo(W - 240, sigY).lineTo(W - 60, sigY).lineWidth(0.5).stroke('#cccccc');
 
-    doc.fontSize(9).font('Helvetica').fillColor('#888888')
-       .text('Learning Center Platform', 80, sigY + 6, { width: 160, align: 'center' })
-       .text('Issuer', 80, sigY + 18, { width: 160, align: 'center' });
+    doc.fontSize(9).font('Helvetica').fillColor('#555566')
+       .text('UniCredit Learning Center', 60, sigY + 6, { width: 180, align: 'center' })
+       .text('Training & Development', 60, sigY + 18, { width: 180, align: 'center' });
 
-    doc.fontSize(9).font('Helvetica').fillColor('#888888')
-       .text(data.trainer_name || 'Learning Center', W - 240, sigY + 6, { width: 160, align: 'center' })
-       .text('Course Author', W - 240, sigY + 18, { width: 160, align: 'center' });
+    doc.fontSize(9).font('Helvetica').fillColor('#555566')
+       .text('UniCredit S.A.', W - 240, sigY + 6, { width: 180, align: 'center' })
+       .text('Spółka Akcyjna Oddział w Polsce', W - 240, sigY + 18, { width: 180, align: 'center' });
 
     doc.end();
   });
@@ -828,7 +928,7 @@ app.get('/api/admin/courses/:userId', (req, res) => {
 
 // Utwórz nowy kurs (Admin)
 app.post('/api/admin/create-course', async (req, res) => {
-  const { title, description, level, duration, price, is_free, modules, quiz, trainer_id, slides, handbook } = req.body;
+  const { title, description, level, duration, modules, quiz, trainer_id, slides, handbook, mandatory, deadline, refresher_months, status } = req.body;
 
   if (!title || !description) {
     return res.status(400).json({ error: 'Title and description are required' });
@@ -837,8 +937,8 @@ app.post('/api/admin/create-course', async (req, res) => {
   try {
     const courseId = await new Promise((resolve, reject) => {
       db.run(
-        'INSERT INTO courses (title, description, level, duration, price, is_free, created_by, is_published) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
-        [title, description, level || 'Beginner', duration || 'Self-paced', price || 0, is_free ? 1 : 0, trainer_id],
+        'INSERT INTO courses (title, description, level, duration, created_by, status, mandatory, deadline, refresher_months) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [title, description, level || 'Intermediate', duration || 'Self-paced', trainer_id, status || 'draft', mandatory ? 1 : 0, deadline || null, refresher_months || 0],
         function(err) { if (err) reject(err); else resolve(this.lastID); }
       );
     });
@@ -915,12 +1015,12 @@ app.post('/api/admin/create-course', async (req, res) => {
 // Update course (Admin)
 app.put('/api/admin/update-course/:courseId', async (req, res) => {
   const { courseId } = req.params;
-  const { title, description, level, duration, price, is_free, modules, quiz, slides, handbook } = req.body;
+  const { title, description, level, duration, modules, quiz, slides, handbook, mandatory, deadline, refresher_months, status } = req.body;
 
   try {
     await new Promise((resolve, reject) => {
-      db.run('UPDATE courses SET title=?, description=?, level=?, duration=?, price=?, is_free=? WHERE id=?',
-        [title, description, level, duration, price || 0, is_free ? 1 : 0, courseId],
+      db.run('UPDATE courses SET title=?, description=?, level=?, duration=?, mandatory=?, deadline=?, refresher_months=?, status=COALESCE(?, status) WHERE id=?',
+        [title, description, level, duration, mandatory ? 1 : 0, deadline || null, refresher_months || 0, status || null, courseId],
         function(err) { if (err) reject(err); else resolve(); }
       );
     });
@@ -1062,6 +1162,10 @@ app.post('/api/admin/users', async (req, res) => {
     return res.status(400).json({ error: 'Name, email and password are required' });
   }
   if (!['user', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+  try {
+    const existing = await new Promise((resolve, reject) =>
       db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => err ? reject(err) : resolve(row))
     );
     if (existing) return res.status(400).json({ error: 'Email already exists' });
@@ -1095,7 +1199,11 @@ app.put('/api/admin/users/:userId/role', (req, res) => {
   const { userId } = req.params;
   const { role } = req.body;
 
-  if (!['user', 'admin'].includes(role)) {, [role, userId], (err) => {
+  if (!['user', 'admin'].includes(role)) {
+    return res.status(400).json({ error: 'Invalid role' });
+  }
+
+  db.run('UPDATE users SET role = ? WHERE id = ?', [role, userId], (err) => {
     if (err) return res.status(500).json({ error: 'Error updating role' });
     res.json({ message: 'Role updated successfully' });
   });
@@ -1284,253 +1392,50 @@ app.get('/api/courses/:courseId/handbook', (req, res) => {
   );
 });
 
-// ============ COURSE APPROVAL WORKFLOW ============
+// ============ COURSE PUBLISH WORKFLOW ============
 
-// Submit course for review (Trainer)
-app.put('/api/courses/:courseId/submit', (req, res) => {
+// Publish course (Admin)
+app.put('/api/courses/:courseId/publish', (req, res) => {
   const { courseId } = req.params;
-  const { trainer_notes } = req.body;
-  db.run("UPDATE courses SET status='pending_review', trainer_notes=? WHERE id=?", [trainer_notes || null, courseId], function(err) {
+  db.run("UPDATE courses SET status='published' WHERE id=?", [courseId], function(err) {
     if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ message: 'Course submitted for review' });
+    res.json({ message: 'Course published' });
   });
 });
 
-// Save draft (Trainer)
-app.put('/api/courses/:courseId/draft', (req, res) => {
+// Unpublish (set to draft) (Admin)
+app.put('/api/courses/:courseId/unpublish', (req, res) => {
   const { courseId } = req.params;
   db.run("UPDATE courses SET status='draft' WHERE id=?", [courseId], function(err) {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ message: 'Course unpublished' });
+  });
+});
+
+// Legacy: keep submit/approve/draft for backward compat
+app.put('/api/courses/:courseId/submit', (req, res) => {
+  db.run("UPDATE courses SET status='published' WHERE id=?", [req.params.courseId], function(err) {
+    if (err) return res.status(500).json({ error: 'DB error' });
+    res.json({ message: 'Course published' });
+  });
+});
+app.put('/api/courses/:courseId/draft', (req, res) => {
+  db.run("UPDATE courses SET status='draft' WHERE id=?", [req.params.courseId], function(err) {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json({ message: 'Saved as draft' });
   });
 });
-
-// Approve course (Admin)
 app.put('/api/courses/:courseId/approve', (req, res) => {
-  const { courseId } = req.params;
-  db.run("UPDATE courses SET status='approved', rejection_reason=NULL WHERE id=?", [courseId], function(err) {
+  db.run("UPDATE courses SET status='published' WHERE id=?", [req.params.courseId], function(err) {
     if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ message: 'Course approved' });
+    res.json({ message: 'Course published' });
   });
 });
-
-// Reject course (Admin)
-app.put('/api/courses/:courseId/reject', (req, res) => {
-  const { courseId } = req.params;
-  const { reason } = req.body;
-  db.run("UPDATE courses SET status='rejected', rejection_reason=? WHERE id=?", [reason || '', courseId], function(err) {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ message: 'Course rejected' });
-  });
-});
-
-// Get pending review courses (Admin)
 app.get('/api/admin/pending-courses', (req, res) => {
-  const query = `SELECT c.*, u.name as trainer_name FROM courses c LEFT JOIN users u ON c.created_by=u.id WHERE c.status='pending_review' ORDER BY c.created_at DESC`;
+  const query = `SELECT c.*, u.name as creator_name FROM courses c LEFT JOIN users u ON c.created_by=u.id WHERE c.status='draft' ORDER BY c.created_at DESC`;
   db.all(query, [], (err, courses) => {
     if (err) return res.status(500).json({ error: 'DB error' });
     res.json({ courses });
-  });
-});
-
-// ============ MESSAGING SYSTEM ============
-
-// Send message
-app.post('/api/messages', (req, res) => {
-  const { from_user_id, to_user_id, course_id, subject, content } = req.body;
-  if (!from_user_id || !content) return res.status(400).json({ error: 'Missing required fields' });
-  db.run('INSERT INTO messages (from_user_id, to_user_id, course_id, subject, content) VALUES (?,?,?,?,?)',
-    [from_user_id, to_user_id || null, course_id || null, subject || null, content],
-    function(err) {
-      if (err) return res.status(500).json({ error: 'Error sending message' });
-      res.status(201).json({ message: 'Message sent', id: this.lastID });
-    });
-});
-
-// Get messages for user (inbox)
-app.get('/api/messages/:userId', (req, res) => {
-  const { userId } = req.params;
-  const query = `
-    SELECT m.*, 
-      u.name as from_name, u.role as from_role,
-      c.title as course_title
-    FROM messages m
-    JOIN users u ON m.from_user_id = u.id
-    LEFT JOIN courses c ON m.course_id = c.id
-    WHERE m.to_user_id = ? OR (m.to_user_id IS NULL AND (SELECT role FROM users WHERE id=?) IN ('admin'))
-    ORDER BY m.created_at DESC LIMIT 50
-  `;
-  db.all(query, [userId, userId], (err, messages) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ messages });
-  });
-});
-
-// Get sent messages for user
-app.get('/api/messages/:userId/sent', (req, res) => {
-  const { userId } = req.params;
-  db.all(`SELECT m.*, u.name as to_name, c.title as course_title FROM messages m LEFT JOIN users u ON m.to_user_id=u.id LEFT JOIN courses c ON m.course_id=c.id WHERE m.from_user_id=? ORDER BY m.created_at DESC LIMIT 50`,
-    [userId], (err, messages) => {
-      if (err) return res.status(500).json({ error: 'DB error' });
-      res.json({ messages });
-    });
-});
-
-// Mark message as read
-app.put('/api/messages/:messageId/read', (req, res) => {
-  db.run('UPDATE messages SET read=1 WHERE id=?', [req.params.messageId], (err) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ message: 'Marked as read' });
-  });
-});
-
-// Unread count
-app.get('/api/messages/:userId/unread-count', (req, res) => {
-  const { userId } = req.params;
-  db.get('SELECT COUNT(*) as count FROM messages WHERE to_user_id=? AND read=0', [userId], (err, row) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ count: row?.count || 0 });
-  });
-});
-
-// Get users for messaging (trainers/admins for user, users enrolled in trainer's course)
-app.get('/api/messaging/contacts/:userId', (req, res) => {
-  const { userId } = req.params;
-  db.get('SELECT role FROM users WHERE id=?', [userId], (err, me) => {
-    if (!me) return res.status(404).json({ error: 'User not found' });
-    
-    if (me.role === 'user') {
-      // User can message admins
-      db.all("SELECT id, name, role FROM users WHERE role = 'admin' ORDER BY name", [], (err, users) => {
-        res.json({ contacts: users || [] });
-      });
-    } else {
-      // Admin can message everyone
-      db.all('SELECT id, name, role FROM users WHERE id != ? ORDER BY name', [userId], (err, users) => {
-        res.json({ contacts: users || [] });
-      });
-    }
-  });
-});
-
-// ============ TRAINER EARNINGS ============
-
-// Get trainer earnings
-app.get('/api/trainer/earnings/:trainerId', (req, res) => {
-  const { trainerId } = req.params;
-
-  db.get("SELECT value FROM platform_settings WHERE key='trainer_commission_pct'", [], (err, setting) => {
-    const globalCommissionPct = parseInt(setting?.value || 70);
-
-    const query = `
-      SELECT c.id as courseId, c.title, c.price, c.currency,
-        c.commission_rate,
-        COUNT(DISTINCT e.user_id) as enrolled_count,
-        COUNT(DISTINCT CASE WHEN e.payment_status='completed' THEN e.user_id END) as paid_count
-      FROM courses c
-      LEFT JOIN enrollments e ON c.id = e.course_id
-      WHERE c.created_by = ?
-      GROUP BY c.id
-    `;
-
-    db.all(query, [trainerId], (err, courses) => {
-      if (err) return res.status(500).json({ error: 'DB error' });
-
-      const earnings = courses.map(c => {
-        // Per-course rate overrides global; null = use global
-        const rate = (c.commission_rate !== null && c.commission_rate !== undefined)
-          ? c.commission_rate / 100
-          : globalCommissionPct / 100;
-        const commissionPct = Math.round(rate * 100);
-        return {
-          ...c,
-          gross: c.paid_count * c.price,
-          net: Math.round(c.paid_count * c.price * rate * 100) / 100,
-          commission_pct: commissionPct,
-          uses_global_rate: c.commission_rate === null || c.commission_rate === undefined,
-        };
-      });
-
-      const totalGross = earnings.reduce((s, e) => s + e.gross, 0);
-      const totalNet = earnings.reduce((s, e) => s + e.net, 0);
-
-      db.all('SELECT * FROM payout_requests WHERE trainer_id=? ORDER BY created_at DESC', [trainerId], (err2, payouts) => {
-        const totalPaidOut = (payouts||[]).filter(p => p.status === 'completed').reduce((s, p) => s + p.amount, 0);
-        res.json({
-          courses: earnings,
-          totalGross,
-          totalNet,
-          totalPaidOut,
-          available: totalNet - totalPaidOut,
-          globalCommissionPct
-        });
-      });
-    });
-  });
-});
-
-// Request payout (Trainer)
-app.post('/api/trainer/payout-request', (req, res) => {
-  const { trainer_id, amount, note } = req.body;
-  if (!trainer_id || !amount) return res.status(400).json({ error: 'Missing fields' });
-  db.run('INSERT INTO payout_requests (trainer_id, amount, status) VALUES (?,?,?)', [trainer_id, amount, 'pending'], function(err) {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.status(201).json({ message: 'Payout request submitted', id: this.lastID });
-  });
-});
-
-// Get all payout requests (Admin)
-app.get('/api/admin/payouts', (req, res) => {
-  const query = `SELECT pr.*, u.name as trainer_name, u.email as trainer_email FROM payout_requests pr JOIN users u ON pr.trainer_id=u.id ORDER BY pr.created_at DESC`;
-  db.all(query, [], (err, payouts) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ payouts });
-  });
-});
-
-// Process payout (Admin)
-app.put('/api/admin/payouts/:id', (req, res) => {
-  const { id } = req.params;
-  const { status, admin_note } = req.body;
-  const processedAt = status === 'completed' ? new Date().toISOString() : null;
-  db.run('UPDATE payout_requests SET status=?, admin_note=?, processed_at=? WHERE id=?',
-    [status, admin_note || null, processedAt, id], function(err) {
-      if (err) return res.status(500).json({ error: 'DB error' });
-      res.json({ message: 'Payout updated' });
-    });
-});
-
-// ============ PLATFORM SETTINGS ============
-
-// Get settings (Admin)
-app.get('/api/admin/settings', (req, res) => {
-  db.all('SELECT key, value FROM platform_settings', [], (err, settings) => {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    const map = {};
-    (settings || []).forEach(s => { map[s.key] = s.value; });
-    res.json({ settings: map });
-  });
-});
-
-// Update setting (Admin)
-app.put('/api/admin/settings/:key', (req, res) => {
-  const { key } = req.params;
-  const { value } = req.body;
-  db.run('INSERT OR REPLACE INTO platform_settings (key, value, updated_at) VALUES (?,?,CURRENT_TIMESTAMP)',
-    [key, value], function(err) {
-      if (err) return res.status(500).json({ error: 'DB error' });
-      res.json({ message: 'Setting updated' });
-    });
-});
-
-// Set commission rate for a specific course (Admin)
-app.put('/api/admin/courses/:courseId/commission', (req, res) => {
-  const { courseId } = req.params;
-  const { commission_rate } = req.body;
-  const rate = commission_rate === null || commission_rate === '' ? null : parseFloat(commission_rate);
-  db.run('UPDATE courses SET commission_rate=? WHERE id=?', [rate, courseId], function(err) {
-    if (err) return res.status(500).json({ error: 'DB error' });
-    res.json({ message: 'Commission rate updated' });
   });
 });
 
@@ -1547,9 +1452,9 @@ app.post('/api/admin/courses/:courseId/duplicate', async (req, res) => {
 
     const newCourseId = await new Promise((resolve, reject) =>
       db.run(
-        'INSERT INTO courses (title, description, level, duration, price, is_free, created_by, status, thumbnail) VALUES (?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO courses (title, description, level, duration, created_by, status, thumbnail, mandatory, deadline, refresher_months) VALUES (?,?,?,?,?,?,?,?,?,?)',
         [`${original.title} (kopia)`, original.description, original.level, original.duration,
-         original.price, original.is_free, adminId || original.created_by, 'draft', original.thumbnail],
+         adminId || original.created_by, 'draft', original.thumbnail, original.mandatory || 0, original.deadline || null, original.refresher_months || 0],
         function(e) { e ? reject(e) : resolve(this.lastID); }
       )
     );
@@ -1655,6 +1560,20 @@ app.get('/api/trainer/students/:trainerId', (req, res) => {
     const pct = r => r.total_lessons > 0 ? Math.round(r.completed_lessons / r.total_lessons * 100) : 0;
     res.json({ students: rows.map(r => ({ ...r, progress_pct: pct(r) })) });
   });
+});
+
+// ============ MARKDOWN IMPORT ============
+
+// Import course from markdown file
+app.post('/api/admin/import-markdown', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  try {
+    const text = req.file.buffer.toString('utf-8');
+    const parsed = parseCourseMarkdown(text);
+    res.json({ success: true, course: parsed });
+  } catch (err) {
+    res.status(400).json({ error: 'Błąd parsowania: ' + err.message });
+  }
 });
 
 // Image upload endpoint

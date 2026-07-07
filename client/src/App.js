@@ -3,20 +3,19 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './styles.css';
 import Header from './components/Header';
 import Login from './components/Login';
-import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import CourseList from './components/CourseList';
 import CoursePage from './components/CoursePage';
 import LessonView from './components/LessonView';
 import QuizPage from './components/QuizPage';
 import CreateCourse from './components/CreateCourse';
+import MarkdownImport from './components/MarkdownImport';
 import Footer from './components/Footer';
 import ToastContainer from './components/ToastContainer';
 import SlidesViewer from './components/SlidesViewer';
 import HandbookViewer from './components/HandbookViewer';
 import ProfilePage from './components/ProfilePage';
 import CertificatesPage from './components/CertificatesPage';
-import MessageCenter from './components/MessageCenter';
 
 
 function App() {
@@ -71,7 +70,6 @@ function App() {
         <main>
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
-            <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
             <Route path="/" element={isAuthenticated ? <Dashboard user={user} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/browse" element={isAuthenticated ? <CourseList user={user} /> : <Navigate to="/login" />} />
             <Route path="/course/:courseId" element={isAuthenticated ? <CoursePage user={user} showToast={showToast} /> : <Navigate to="/login" />} />
@@ -81,9 +79,9 @@ function App() {
             <Route path="/course/:courseId/handbook" element={isAuthenticated ? <HandbookViewer /> : <Navigate to="/login" />} />
             <Route path="/profile" element={isAuthenticated ? <ProfilePage user={user} onUserUpdate={handleUserUpdate} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/certificates" element={isAuthenticated ? <CertificatesPage user={user} /> : <Navigate to="/login" />} />
-            <Route path="/messages" element={isAuthenticated ? <MessageCenter user={user} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/admin/create-course" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} /> : <Navigate to="/" />} />
             <Route path="/admin/edit-course/:courseId" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} editMode={true} /> : <Navigate to="/" />} />
+            <Route path="/admin/import-markdown" element={isAuthenticated && user?.role === 'admin' ? <MarkdownImport showToast={showToast} /> : <Navigate to="/" />} />
           </Routes>
         </main>
         <Footer />

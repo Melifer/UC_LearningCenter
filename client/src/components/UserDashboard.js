@@ -3,31 +3,32 @@ import { useNavigate } from 'react-router-dom';
 
 const UserDashboard = ({ user, showToast }) => {
   const navigate = useNavigate();
-  const [enrolledCourses, setEnrolledCourses] = useState([]);
-  const [allCourses, setAllCourses] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [enrolledIds, setEnrolledIds] = useState(new Set());
   const [progress, setProgress] = useState({});
   const [loading, setLoading] = useState(true);
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // all | mandatory | inprogress | completed
 
   const fetchData = useCallback(async () => {
     try {
-      const [myCRes, allCRes] = await Promise.all([
+      const [allRes, myRes] = await Promise.all([
+        fetch(`http://localhost:3002/api/courses?role=user&userId=${user.id}`),
         fetch(`http://localhost:3002/api/my-courses/${user.id}`),
-        fetch(`http://localhost:3002/api/courses?role=${user.role}&userId=${user.id}`),
       ]);
-      const myData = await myCRes.json();
-      const allData = await allCRes.json();
+      const allData = allRes.ok ? (await allRes.json()).courses || [] : [];
+      const myData = myRes.ok ? (await myRes.json()).courses || [] : [];
 
-      const enrolled = myData.courses || [];
-      setEnrolledCourses(enrolled);
-      setAllCourses(allData.courses || []);
+      setCourses(allData);
+      setEnrolledIds(new Set(myData.map(c => c.id)));
 
-      if (enrolled.length > 0) {
+      if (myData.length > 0) {
         const progResults = await Promise.all(
-          enrolled.map(c => fetch(`http://localhost:3002/api/course/${c.id}/progress/${user.id}`).then(r => r.json()))
+          myData.map(c => fetch(`http://localhost:3002/api/course/${c.id}/progress/${user.id}`).then(r => r.json()).catch(() => ({})))
         );
         const map = {};
-        enrolled.forEach((c, i) => { map[c.id] = progResults[i]; });
+        myData.forEach((c, i) => { map[c.id] = progResults[i]; });
         setProgress(map);
       }
     } catch (err) { console.error(err); }
@@ -36,13 +37,16 @@ const UserDashboard = ({ user, showToast }) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const completedCourses = enrolledCourses.filter(c => c.completed_at);
-  const inProgressCourses = enrolledCourses.filter(c => !c.completed_at && progress[c.id]?.completed > 0);
-  const notStartedCourses = enrolledCourses.filter(c => !c.completed_at && !progress[c.id]?.completed);
-  const enrolledIds = new Set(enrolledCourses.map(c => c.id));
-  const availableCourses = allCourses.filter(c => !enrolledIds.has(c.id) && c.status !== 'draft');
+  const handleStart = async (courseId) => {
+    if (!enrolledIds.has(courseId)) {
+      const res = await fetch('http://localhost:3002/api/enroll', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, courseId })
+      });
+      if (!res.ok) { const d = await res.json(); showToast && showToast(d.error || 'Błąd', 'error'); return; }
+      showToast && showToast('Zapisano na szkolenie', 'success');
+    }
 
-  const handleContinue = (courseId) => {
     const prog = progress[courseId];
     if (prog?.lessons) {
       const first = prog.lessons.find(l => !l.completed);
@@ -51,14 +55,35 @@ const UserDashboard = ({ user, showToast }) => {
     navigate(`/course/${courseId}`);
   };
 
-  const handleEnroll = async (courseId) => {
-    const res = await fetch('http://localhost:3002/api/enroll', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: user.id, courseId })
-    });
-    if (res.ok) { showToast && showToast('Zapisano na kurs!', 'success'); fetchData(); }
-    else { const d = await res.json(); showToast && showToast(d.error || 'Błąd', 'error'); }
+  const formatDate = (d) => {
+    if (!d) return null;
+    return new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' });
   };
+
+  const isOverdue = (deadline) => {
+    if (!deadline) return false;
+    return new Date(deadline) < new Date();
+  };
+
+  const filtered = courses.filter(c => {
+    const matchSearch = !search || c.title.toLowerCase().includes(search.toLowerCase()) || (c.description || '').toLowerCase().includes(search.toLowerCase());
+    const matchLevel = levelFilter === 'all' || c.level === levelFilter;
+    const prog = progress[c.id];
+    const pct = prog?.percentage || 0;
+    const completed = enrolledIds.has(c.id) && pct === 100;
+    const inProgress = enrolledIds.has(c.id) && pct > 0 && pct < 100;
+    const matchStatus =
+      statusFilter === 'all' ? true :
+      statusFilter === 'mandatory' ? c.mandatory :
+      statusFilter === 'inprogress' ? inProgress :
+      statusFilter === 'completed' ? completed : true;
+    return matchSearch && matchLevel && matchStatus;
+  });
+
+  const mandatory = courses.filter(c => c.mandatory);
+  const overdueCount = mandatory.filter(c => isOverdue(c.deadline) && !((progress[c.id]?.percentage || 0) === 100)).length;
+  const completedCount = courses.filter(c => enrolledIds.has(c.id) && (progress[c.id]?.percentage || 0) === 100).length;
+  const inProgressCount = courses.filter(c => enrolledIds.has(c.id) && (progress[c.id]?.percentage || 0) > 0 && (progress[c.id]?.percentage || 0) < 100).length;
 
   if (loading) return <div className="course-loading"><div className="loading-spinner"></div></div>;
 
@@ -66,144 +91,114 @@ const UserDashboard = ({ user, showToast }) => {
     <div className="container user-dashboard">
       <div className="dashboard-header">
         <div>
-          <h1>Witaj, {user.name}! 👋</h1>
-          <p className="dashboard-subtitle">Twoja ścieżka nauki</p>
+          <h1>Witaj, {user.name || user.email}!</h1>
+          <p className="dashboard-subtitle">UniCredit Learning Center — Twoje szkolenia</p>
         </div>
+        <button className="button-secondary" onClick={() => navigate('/certificates')}>🎓 Moje certyfikaty</button>
       </div>
 
-      {/* Stats - all clickable */}
       <div className="dashboard-stats">
-        <div className={`stat-card clickable ${activeFilter==='all'?'active':''}`} onClick={() => setActiveFilter('all')}>
+        <div className={`stat-card clickable ${statusFilter==='all'?'active':''}`} onClick={() => setStatusFilter('all')}>
           <div className="stat-icon">📚</div>
-          <div className="stat-value">{enrolledCourses.length}</div>
-          <div className="stat-label">Moje kursy</div>
+          <div className="stat-value">{courses.length}</div>
+          <div className="stat-label">Dostępnych</div>
         </div>
-        <div className={`stat-card clickable ${activeFilter==='inprogress'?'active':''}`} onClick={() => setActiveFilter('inprogress')}>
+        <div className={`stat-card clickable ${statusFilter==='mandatory'?'active':''}`} onClick={() => setStatusFilter('mandatory')}>
+          <div className="stat-icon">🔴</div>
+          <div className="stat-value">{mandatory.length}</div>
+          <div className="stat-label">Obowiązkowych</div>
+        </div>
+        <div className={`stat-card clickable ${statusFilter==='inprogress'?'active':''}`} onClick={() => setStatusFilter('inprogress')}>
           <div className="stat-icon">🎯</div>
-          <div className="stat-value">{inProgressCourses.length}</div>
+          <div className="stat-value">{inProgressCount}</div>
           <div className="stat-label">W trakcie</div>
         </div>
-        <div className={`stat-card clickable ${activeFilter==='completed'?'active':''}`} onClick={() => setActiveFilter('completed')}>
+        <div className={`stat-card clickable ${statusFilter==='completed'?'active':''}`} onClick={() => setStatusFilter('completed')}>
           <div className="stat-icon">✅</div>
-          <div className="stat-value">{completedCourses.length}</div>
-          <div className="stat-label">Ukończone</div>
-        </div>
-        <div className="stat-card clickable" onClick={() => navigate('/certificates')}>
-          <div className="stat-icon">🎓</div>
-          <div className="stat-value">{completedCourses.length}</div>
-          <div className="stat-label">Certyfikaty →</div>
+          <div className="stat-value">{completedCount}</div>
+          <div className="stat-label">Ukończonych</div>
         </div>
       </div>
 
-      {/* Enrolled courses - in progress first */}
-      {enrolledCourses.length > 0 && (activeFilter === 'all' || activeFilter === 'inprogress' || activeFilter === 'completed') && (
-        <section className="dashboard-section">
-          <h2>
-            {activeFilter === 'completed' ? '✅ Ukończone kursy' :
-             activeFilter === 'inprogress' ? '🎯 Kursy w trakcie' : '📚 Moje kursy'}
-          </h2>
-
-          {/* In Progress */}
-          {(activeFilter === 'all' || activeFilter === 'inprogress') && inProgressCourses.length > 0 && (
-            <>
-              {activeFilter === 'all' && <h4 className="sub-section-label">Kontynuuj naukę</h4>}
-              <div className="enrolled-courses-grid">
-                {inProgressCourses.map(course => {
-                  const prog = progress[course.id] || { percentage: 0 };
-                  return (
-                    <div key={course.id} className="enrolled-course-card">
-                      <div className="ecc-progress-bar"><div className="ecc-progress-fill" style={{ width: `${prog.percentage}%` }}></div></div>
-                      <div className="ecc-body">
-                        <span className="badge-inprogress">{prog.percentage}% ukończone</span>
-                        <h3 onClick={() => navigate(`/course/${course.id}`)}>{course.title}</h3>
-                        <p>{course.level} · {course.duration}</p>
-                      </div>
-                      <div className="ecc-actions">
-                        <button className="button-primary" onClick={() => handleContinue(course.id)}>▶ Kontynuuj</button>
-                        <button className="button-secondary" onClick={() => navigate(`/course/${course.id}`)}>Przegląd</button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
-
-          {/* Not started */}
-          {activeFilter === 'all' && notStartedCourses.length > 0 && (
-            <>
-              <h4 className="sub-section-label" style={{marginTop:'28px'}}>Nie rozpoczęte</h4>
-              <div className="enrolled-courses-grid">
-                {notStartedCourses.map(course => (
-                  <div key={course.id} className="enrolled-course-card not-started">
-                    <div className="ecc-progress-bar"><div className="ecc-progress-fill" style={{ width: '0%' }}></div></div>
-                    <div className="ecc-body">
-                      <span style={{fontSize:'12px',color:'var(--text-muted)'}}>Nie rozpoczęto</span>
-                      <h3 onClick={() => navigate(`/course/${course.id}`)}>{course.title}</h3>
-                      <p>{course.level} · {course.duration}</p>
-                    </div>
-                    <div className="ecc-actions">
-                      <button className="button-primary" onClick={() => navigate(`/course/${course.id}`)}>▶ Zacznij</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* Completed */}
-          {(activeFilter === 'all' || activeFilter === 'completed') && completedCourses.length > 0 && (
-            <>
-              {activeFilter === 'all' && <h4 className="sub-section-label" style={{marginTop:'28px'}}>Ukończone</h4>}
-              <div className="enrolled-courses-grid">
-                {completedCourses.map(course => (
-                  <div key={course.id} className="enrolled-course-card completed">
-                    <div className="ecc-progress-bar"><div className="ecc-progress-fill" style={{ width: '100%', background: '#22c55e' }}></div></div>
-                    <div className="ecc-body">
-                      <span className="badge-completed">✓ Ukończony</span>
-                      <h3 onClick={() => navigate(`/course/${course.id}`)}>{course.title}</h3>
-                      <p>{course.level} · Ukończono: {new Date(course.completed_at).toLocaleDateString('pl-PL')}</p>
-                    </div>
-                    <div className="ecc-actions">
-                      <a href={`http://localhost:3002/api/certificate/${user.id}/${course.id}`} target="_blank" rel="noreferrer" className="button-primary" style={{textDecoration:'none'}}>🎓 Certyfikat</a>
-                      <button className="button-secondary" onClick={() => navigate(`/course/${course.id}`)}>Wróć</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </section>
+      {overdueCount > 0 && (
+        <div className="overdue-alert">
+          ⚠️ Masz <strong>{overdueCount}</strong> przeterminowane szkolenie{overdueCount > 1 ? 'a' : ''} obowiązkowe
+        </div>
       )}
 
-      {/* Available courses */}
-      {availableCourses.length > 0 && activeFilter === 'all' && (
-        <section className="dashboard-section">
-          <div className="section-header">
-            <h2>Dostępne kursy</h2>
-            <button className="button-secondary" onClick={() => navigate('/browse')}>Katalog →</button>
-          </div>
-          <div className="available-courses-grid">
-            {availableCourses.slice(0, 6).map(course => (
-              <div key={course.id} className="available-course-card" onClick={() => navigate(`/course/${course.id}`)}>
-                <div className="acc-thumb"><span className="acc-level">{course.level}</span></div>
-                <div className="acc-body">
-                  <h3>{course.title}</h3>
-                  <p>{course.description?.substring(0, 80)}...</p>
-                  <div className="acc-meta">
-                    <span>⏱ {course.duration}</span>
-                    <span className={course.is_free ? 'price-free' : 'price-paid'}>{course.is_free ? '🆓 Bezpłatny' : `${course.price} PLN`}</span>
+      <div className="catalog-filters">
+        <input
+          className="catalog-search"
+          type="text"
+          placeholder="🔍 Szukaj szkoleń..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <div className="level-filters">
+          {['all', 'Beginner', 'Intermediate', 'Advanced'].map(l => (
+            <button key={l} className={`filter-btn ${levelFilter === l ? 'active' : ''}`} onClick={() => setLevelFilter(l)}>
+              {l === 'all' ? 'Wszystkie' : l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="empty-state-small">
+          <p>Brak szkoleń spełniających kryteria wyszukiwania.</p>
+          <button className="button-secondary" onClick={() => { setSearch(''); setLevelFilter('all'); setStatusFilter('all'); }}>Wyczyść filtry</button>
+        </div>
+      ) : (
+        <div className="uc-courses-grid">
+          {filtered.map(course => {
+            const prog = progress[course.id] || {};
+            const pct = prog.percentage || 0;
+            const enrolled = enrolledIds.has(course.id);
+            const completed = enrolled && pct === 100;
+            const inProgress = enrolled && pct > 0 && pct < 100;
+            const overdue = isOverdue(course.deadline) && !completed;
+
+            return (
+              <div key={course.id} className={`uc-course-card ${completed ? 'uc-course-card--completed' : ''} ${overdue ? 'uc-course-card--overdue' : ''}`}>
+                <div className="uc-course-badges">
+                  {course.mandatory && <span className="badge-mandatory">🔴 OBOWIĄZKOWE</span>}
+                  {!course.mandatory && <span className="badge-optional">Nieobowiązkowe</span>}
+                  {course.refresher_months > 0 && <span className="badge-refresher">♻️ co {course.refresher_months} mies.</span>}
+                  {completed && <span className="badge-completed">✅ Zaliczone</span>}
+                </div>
+
+                <h3 className="uc-course-title" onClick={() => navigate(`/course/${course.id}`)}>{course.title}</h3>
+                <p className="uc-course-desc">{course.description}</p>
+
+                <div className="uc-course-meta">
+                  <span>{course.level}</span>
+                  <span>·</span>
+                  <span>{course.duration}</span>
+                  {course.deadline && (
+                    <>
+                      <span>·</span>
+                      <span className={overdue ? 'text-overdue' : ''}>{overdue ? '⚠️ ' : '⏰ '}Do: {formatDate(course.deadline)}</span>
+                    </>
+                  )}
+                </div>
+
+                {enrolled && (
+                  <div className="uc-progress-bar">
+                    <div className="uc-progress-fill" style={{ width: `${pct}%` }}></div>
+                    <span className="uc-progress-label">{pct}%</span>
                   </div>
-                </div>
-                <div className="acc-footer">
-                  <button className="button-primary" onClick={e => { e.stopPropagation(); handleEnroll(course.id); }}>
-                    {course.is_free ? 'Zapisz się' : `Kup za ${course.price} PLN`}
-                  </button>
-                </div>
+                )}
+
+                <button
+                  className={`button-primary uc-start-btn ${completed ? 'button-secondary' : ''}`}
+                  onClick={() => handleStart(course.id)}
+                >
+                  {completed ? '🎓 Powtórz szkolenie' : inProgress ? `Kontynuuj (${pct}%)` : '▶ Rozpocznij'}
+                </button>
               </div>
-            ))}
-          </div>
-        </section>
+            );
+          })}
+        </div>
       )}
     </div>
   );
