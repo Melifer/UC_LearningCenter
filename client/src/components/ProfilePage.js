@@ -66,7 +66,7 @@ const ProfileePage = ({ user, onUserUpdate, showToast }) => {
             <div className="bf-group"><label>Full name</label><input type="text" value={profile.name} onChange={e => setProfilee({...profile, name: e.target.value})} placeholder="Jan Kowalski" /></div>
             <div className="bf-group"><label>Email address</label><input type="email" value={profile.email} onChange={e => setProfilee({...profile, email: e.target.value})} /></div>
           </div>
-          <p className="sso-note">🔐 Logowanie odbywa się przez SSO UniCredit. Dane są synchronizowane z katalogu firmowego.</p>
+          <p className="sso-note">🔐 Authentication is managed via UniCredit corporate SSO. Your profile data is synchronised from the corporate directory.</p>
           <button className="button-primary" onClick={handleSaveProfilee} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button>
         </div>
       )}

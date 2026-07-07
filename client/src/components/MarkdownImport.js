@@ -28,7 +28,7 @@ const MarkdownImport = ({ showToast }) => {
         setLoading(false);
         return;
       }
-      showToast && showToast('Plik wczytany — sprawdź i opublikuj kurs', 'success');
+      showToast && showToast('File imported — review and publish', 'success');
       navigate('/admin/create-course', { state: { importedCourse: data.course } });
     } catch (err) {
       setError('Error sieci: ' + err.message);
@@ -122,12 +122,10 @@ D) Option D
           <div className="md-import-info">
             <h4>What will be imported:</h4>
             <ul>
-              <li>✅ Metadane kursu (tytuł, opis, poziom, czas trwania)</li>
-              <li>✅ Oznaczenia: obowiązkowy, termin, refresher</li>
+              <li>✅ Course metadata (title, description, level, duration)</li>
+              <li>✅ Flags: mandatory, deadline, refresher cycle</li>
               <li>✅ Modules and lessons with content</li>
-              <li>✅ Slajdy szkoleniowe</li>
-              <li>✅ Handbook (podręcznik)</li>
-              <li>✅ Quiz z pytaniami i wyjaśnieniami</li>
+              <li>✅ Quiz with questions and explanations</li>
             </ul>
             <p className="md-import-note">
               After importing, you can review and edit everything before publishing.
@@ -139,14 +137,14 @@ D) Option D
           <h3>Markdown File Format</h3>
           <pre className="md-format-code">{exampleFormat}</pre>
           <div className="md-format-notes">
-            <h4>Uwagi:</h4>
+            <h4>Notes:</h4>
             <ul>
-              <li><code>mandatory: true/false</code> — szkolenie obowiązkowe</li>
-              <li><code>deadline: "YYYY-MM-DD"</code> — termin wykonania (opcjonalne)</li>
-              <li><code>refresher_months: 12</code> — odnawialność co N miesięcy (0 = brak)</li>
-              <li><code>passing_score: 100</code> — % poprawnych odpowiedzi wymagany do zaliczenia</li>
-              <li>Sekcje oddzielane <code>---SLIDES---</code>, <code>---HANDBOOK---</code>, <code>---QUIZ---</code></li>
-              <li>Pytania quizu numerowane jako <code>### Q1</code>, <code>### Q2</code>, itd.</li>
+              <li><code>mandatory: true/false</code> — mark as mandatory training</li>
+              <li><code>deadline: "YYYY-MM-DD"</code> — completion deadline (optional)</li>
+              <li><code>refresher_months: 12</code> — renewal cycle in months (0 = none)</li>
+              <li><code>passing_score: 100</code> — % correct answers required to pass</li>
+              <li>Sections separated by <code>---QUIZ---</code></li>
+              <li>Quiz questions numbered as <code>### Q1</code>, <code>### Q2</code>, etc.</li>
             </ul>
           </div>
         </div>
