@@ -7,6 +7,9 @@ backend/node_modules/
 client/build/
 
 # Database (SQLite - nie commit na GitHub!)
+*.db
+*.db-shm
+*.db-wal
 backend/learning_center.db
 backend/learning_center.db-shm
 backend/learning_center.db-wal
