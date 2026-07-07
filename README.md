@@ -1,84 +1,114 @@
 # UniCredit Learning Center
 
-Wewnętrzna platforma szkoleń pracowniczych UniCredit. Umożliwia realizację obowiązkowych i opcjonalnych szkoleń z polityk wewnętrznych i regulacji bankowych (EBA, GDPR, AML i inne).
+Internal employee training platform for UniCredit bank staff. Provides mandatory compliance trainings (EBA, GDPR, AML, internal policies) with certificate issuance, progress tracking, and admin course management.
 
-## Szybki start
+## Quick start (local development)
 
 ```bash
-# Instalacja
+# 1. Install dependencies
 cd backend && npm install
 cd ../client && npm install
 
-# Uruchomienie (backend + frontend)
-./start.sh
-# lub osobno:
-cd backend && node server.js        # http://localhost:3002
-cd client && PORT=3003 npm start    # http://localhost:3003
+# 2. Start everything
+cd .. && ./start.sh
 ```
 
-## Logowanie
+Open http://localhost:3003
 
-Platforma używa logowania email-only (SSO prep). Wpisz służbowy email UniCredit — konto zostanie automatycznie utworzone przy pierwszym logowaniu.
+**Demo accounts** (email-only login — no password):
+- `admin@unicredit.pl` — admin dashboard
+- `jan.kowalski@unicredit.pl` — employee view
 
-**Konta demo:**
-- `admin@unicredit.pl` — panel administratora
-- `jan.kowalski@unicredit.pl` — widok pracownika
-
-## Funkcje
-
-### Dla pracowników (User)
-- Katalog dostępnych szkoleń z oznaczeniami obowiązkowych
-- Śledzenie postępu i terminów realizacji
-- Quizy z progiem zdawalności (domyślnie 100% dla szkoleń obowiązkowych)
-- Certyfikaty PDF generowane po ukończeniu
-- Refresher — automatyczne powiadomienie o wymaganym odnowieniu szkolenia
-
-### Dla administratorów
-- Zarządzanie szkoleniami (tworzenie, edycja, publikacja)
-- **Import z Markdown** — wczytaj plik `.md` ze strukturą kursu, przejrzyj i opublikuj
-- Builder wizualny (6 kroków: Podstawy → Moduły → Slajdy → Handbook → Quiz → Podgląd)
-- Publish/Unpublish jednym kliknięciem
-
-## Import kursu z Markdown
-
-Admin może importować szkolenia z pliku `.md`. Format:
-
-```markdown
----
-title: "Tytuł szkolenia"
-mandatory: true
-deadline: "2026-12-31"
-refresher_months: 12
-passing_score: 100
 ---
 
-# Module 1: Tytuł
-## Lesson 1.1: Tytuł lekcji
-Treść...
+## Deployment to production server
 
----SLIDES---
----HANDBOOK---
----QUIZ---
+### Option 1 — VPS / Cloud (recommended)
+
+Requirements: Ubuntu 22+, Node.js 18+, nginx
+
+```bash
+# On the server:
+git clone https://github.com/Melifer/UC_LearningCenter.git
+cd UC_LearningCenter
+
+# Install deps
+cd backend && npm install --production
+cd ../client && npm install && npm run build
+
+# Build output is in client/build/ — serve via Express or nginx
+# To serve with Express, configure server.js to serve static files:
+# app.use(express.static(path.join(__dirname, '../client/build')))
 ```
 
-Pełna dokumentacja formatu: [docs/superpowers/plans/](docs/superpowers/plans/)
+**Run backend as a daemon (PM2):**
+```bash
+npm install -g pm2
+pm2 start backend/server.js --name "uc-learning-backend"
+pm2 startup && pm2 save
+```
 
-## Pierwsze szkolenie
+**nginx config** (reverse proxy):
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
 
-`docs/courses/eba-ict-security-risk-management.md` — profesjonalne szkolenie z wytycznych **EBA/GL/2019/04** (EBA ICT & Security Risk Management Guidelines). Ładowane automatycznie przy pierwszym uruchomieniu.
+    # Serve React app
+    location / {
+        root /path/to/UC_LearningCenter/client/build;
+        try_files $uri $uri/ /index.html;
+    }
 
-## Stack technologiczny
+    # Proxy API to backend
+    location /api {
+        proxy_pass http://localhost:3002;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
 
-| Warstwa | Technologia |
-|---------|-------------|
-| Frontend | React 18, React Router v6 |
-| Backend | Node.js, Express.js |
-| Baza danych | SQLite3 |
-| PDF | pdfkit |
-| Markdown parser | gray-matter |
+### Option 2 — Cyberfolks shared hosting
 
-## Środowisko
+Cyberfolks supports Node.js via their control panel:
 
-- Backend: `http://localhost:3002`
-- Frontend: `http://localhost:3003`
-- Baza danych: `backend/learning_center.db` (auto-tworzona)
+1. Log in to cPanel → **Setup Node.js App**
+2. Create app: Application root = `backend/`, startup file = `server.js`, Node version ≥ 18
+3. Run in SSH: `npm install --production` in the backend folder
+4. Build frontend: locally run `cd client && npm run build`, then upload `client/build/` contents to `public_html/` (or subdirectory)
+5. Configure `.htaccess` in `public_html/` for SPA routing:
+   ```
+   Options -MultiViews
+   RewriteEngine On
+   RewriteCond %{REQUEST_FILENAME} !-f
+   RewriteRule ^ index.html [QSA,L]
+   ```
+6. Update `API_URL` in frontend if backend runs on a different port/domain
+
+### Environment variables
+
+Create `backend/.env`:
+```
+PORT=3002
+# Add any secrets here (JWT secret for future SSO integration)
+```
+
+---
+
+## Adding new courses
+
+1. **Via Markdown** (recommended): Write a `.md` file following the format in `docs/courses/eba-ict-security-risk-management.md`, then go to Admin Dashboard → Import Markdown.
+
+2. **Via builder**: Admin Dashboard → New Training → 6-step visual builder.
+
+---
+
+## Tech stack
+
+- **Frontend**: React 18, React Router v6, DM Sans font
+- **Backend**: Node.js, Express.js
+- **Database**: SQLite3 (auto-created at `backend/learning_center.db`)
+- **PDF**: pdfkit (certificates)
+- **Auth**: Email-only SSO prep (future: connect to corporate SSO)

@@ -1461,8 +1461,20 @@ app.post('/api/upload/image', (req, res) => {
   res.json({ url: imageData, filename: filename || 'image.png' });
 });
 
+// ============ PRODUCTION: Serve React build ============
+const buildPath = path.join(__dirname, '../client/build');
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(buildPath, 'index.html'));
+    }
+  });
+  console.log('Serving React build from client/build/');
+}
+
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`UniCredit Learning Center API running on port ${PORT}`);
 });
 
 // Obsługa zamykania połączenia z bazą danych
