@@ -213,7 +213,6 @@ async function createDefaultData() {
   // Użytkownicy testowi
   const defaultUsers = [
     { email: 'admin@test.com', password: 'admin', role: 'admin', name: 'Admin User' },
-    { email: 'trainer@test.com', password: 'trainer', role: 'trainer', name: 'Trainer Smith' },
     { email: 'user@test.com', password: 'user', role: 'user', name: 'John Doe' }
   ];
 
@@ -470,10 +469,6 @@ app.get('/api/courses', (req, res) => {
   if (role === 'admin') {
     // Admin widzi wszystko
     query = 'SELECT * FROM courses ORDER BY created_at DESC';
-  } else if (role === 'trainer' && userId) {
-    // Trainer widzi swoje (każdy status) + zatwierdzone innych
-    query = `SELECT * FROM courses WHERE status = 'approved' OR created_by = ? ORDER BY created_at DESC`;
-    params = [userId];
   } else {
     // User widzi tylko zatwierdzone
     query = `SELECT * FROM courses WHERE status = 'approved' OR status IS NULL ORDER BY created_at DESC`;
@@ -810,10 +805,10 @@ app.get('/api/course/:courseId/progress/:userId', (req, res) => {
   });
 });
 
-// ============ TRAINER ENDPOINTS ============
+// ============ ADMIN COURSE ENDPOINTS ============
 
-// Pobierz kursy trenera
-app.get('/api/trainer/courses/:userId', (req, res) => {
+// Pobierz kursy admina
+app.get('/api/admin/courses/:userId', (req, res) => {
   const { userId } = req.params;
 
   const query = `
@@ -831,8 +826,8 @@ app.get('/api/trainer/courses/:userId', (req, res) => {
   });
 });
 
-// Utwórz nowy kurs (Trainer)
-app.post('/api/trainer/create-course', async (req, res) => {
+// Utwórz nowy kurs (Admin)
+app.post('/api/admin/create-course', async (req, res) => {
   const { title, description, level, duration, price, is_free, modules, quiz, trainer_id, slides, handbook } = req.body;
 
   if (!title || !description) {
@@ -917,8 +912,8 @@ app.post('/api/trainer/create-course', async (req, res) => {
   }
 });
 
-// Update course (Trainer/Admin)
-app.put('/api/trainer/update-course/:courseId', async (req, res) => {
+// Update course (Admin)
+app.put('/api/admin/update-course/:courseId', async (req, res) => {
   const { courseId } = req.params;
   const { title, description, level, duration, price, is_free, modules, quiz, slides, handbook } = req.body;
 
@@ -1066,11 +1061,7 @@ app.post('/api/admin/users', async (req, res) => {
   if (!name || !email || !password) {
     return res.status(400).json({ error: 'Name, email and password are required' });
   }
-  if (!['user', 'trainer', 'admin'].includes(role)) {
-    return res.status(400).json({ error: 'Invalid role' });
-  }
-  try {
-    const existing = await new Promise((resolve, reject) =>
+  if (!['user', 'admin'].includes(role)) {
       db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => err ? reject(err) : resolve(row))
     );
     if (existing) return res.status(400).json({ error: 'Email already exists' });
@@ -1104,11 +1095,7 @@ app.put('/api/admin/users/:userId/role', (req, res) => {
   const { userId } = req.params;
   const { role } = req.body;
 
-  if (!['user', 'trainer', 'admin'].includes(role)) {
-    return res.status(400).json({ error: 'Invalid role' });
-  }
-
-  db.run('UPDATE users SET role = ? WHERE id = ?', [role, userId], (err) => {
+  if (!['user', 'admin'].includes(role)) {, [role, userId], (err) => {
     if (err) return res.status(500).json({ error: 'Error updating role' });
     res.json({ message: 'Role updated successfully' });
   });
@@ -1413,15 +1400,8 @@ app.get('/api/messaging/contacts/:userId', (req, res) => {
     if (!me) return res.status(404).json({ error: 'User not found' });
     
     if (me.role === 'user') {
-      // User can message trainers and admins
-      db.all("SELECT id, name, role FROM users WHERE role IN ('trainer','admin') ORDER BY name", [], (err, users) => {
-        res.json({ contacts: users || [] });
-      });
-    } else if (me.role === 'trainer') {
-      // Trainer can message admins and users enrolled in their courses
-      const query = `SELECT DISTINCT u.id, u.name, u.role FROM users u WHERE u.role='admin'
-        UNION SELECT DISTINCT u.id, u.name, u.role FROM users u JOIN enrollments e ON u.id=e.user_id JOIN courses c ON e.course_id=c.id WHERE c.created_by=? ORDER BY name`;
-      db.all(query, [userId], (err, users) => {
+      // User can message admins
+      db.all("SELECT id, name, role FROM users WHERE role = 'admin' ORDER BY name", [], (err, users) => {
         res.json({ contacts: users || [] });
       });
     } else {

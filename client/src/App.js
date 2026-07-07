@@ -17,8 +17,7 @@ import HandbookViewer from './components/HandbookViewer';
 import ProfilePage from './components/ProfilePage';
 import CertificatesPage from './components/CertificatesPage';
 import MessageCenter from './components/MessageCenter';
-import TrainerEarnings from './components/TrainerEarnings';
-import TrainerStudents from './components/TrainerStudents';
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -83,10 +82,8 @@ function App() {
             <Route path="/profile" element={isAuthenticated ? <ProfilePage user={user} onUserUpdate={handleUserUpdate} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/certificates" element={isAuthenticated ? <CertificatesPage user={user} /> : <Navigate to="/login" />} />
             <Route path="/messages" element={isAuthenticated ? <MessageCenter user={user} showToast={showToast} /> : <Navigate to="/login" />} />
-            <Route path="/trainer/earnings" element={isAuthenticated && (user?.role === 'trainer' || user?.role === 'admin') ? <TrainerEarnings user={user} showToast={showToast} /> : <Navigate to="/" />} />
-            <Route path="/trainer/students" element={isAuthenticated && (user?.role === 'trainer' || user?.role === 'admin') ? <TrainerStudents user={user} showToast={showToast} /> : <Navigate to="/" />} />
-            <Route path="/trainer/create-course" element={isAuthenticated && (user?.role === 'trainer' || user?.role === 'admin') ? <CreateCourse user={user} showToast={showToast} /> : <Navigate to="/" />} />
-            <Route path="/trainer/edit-course/:courseId" element={isAuthenticated && (user?.role === 'trainer' || user?.role === 'admin') ? <CreateCourse user={user} showToast={showToast} editMode={true} /> : <Navigate to="/" />} />
+            <Route path="/admin/create-course" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} /> : <Navigate to="/" />} />
+            <Route path="/admin/edit-course/:courseId" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} editMode={true} /> : <Navigate to="/" />} />
           </Routes>
         </main>
         <Footer />

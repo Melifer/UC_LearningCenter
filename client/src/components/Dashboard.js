@@ -1,6 +1,5 @@
 import React from 'react';
 import UserDashboard from './UserDashboard';
-import TrainerDashboard from './TrainerDashboard';
 import AdminDashboard from './AdminDashboard';
 
 const Dashboard = ({ user }) => {
@@ -12,8 +11,6 @@ const Dashboard = ({ user }) => {
   switch (user.role) {
     case 'admin':
       return <AdminDashboard user={user} />;
-    case 'trainer':
-      return <TrainerDashboard user={user} />;
     case 'user':
     default:
       return <UserDashboard user={user} />;

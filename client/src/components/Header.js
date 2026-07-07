@@ -49,8 +49,8 @@ const Header = ({ user, onLogout, theme, onThemeChange }) => {
         <nav className="header-nav">
           <Link to="/" className="nav-link">Dashboard</Link>
           <Link to="/browse" className="nav-link">Kursy</Link>
-          {(user.role === 'trainer' || user.role === 'admin') && (
-            <Link to="/trainer/create-course" className="nav-link">+ Nowy kurs</Link>
+          {user.role === 'admin' && (
+            <Link to="/admin/create-course" className="nav-link">+ Nowy kurs</Link>
           )}
           <Link to="/messages" className="nav-link nav-messages">
             ✉️ {unread > 0 && <span className="nav-unread">{unread}</span>}

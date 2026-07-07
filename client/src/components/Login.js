@@ -28,7 +28,6 @@ const Login = ({ onLogin }) => {
 
   const demoAccounts = [
     { label: 'Admin', email: 'admin@test.com', pass: 'admin', color: '#cc0000' },
-    { label: 'Trainer', email: 'trainer@test.com', pass: 'trainer', color: '#f59e0b' },
     { label: 'User', email: 'user@test.com', pass: 'user', color: '#22c55e' },
   ];
 

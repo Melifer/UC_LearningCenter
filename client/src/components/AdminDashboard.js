@@ -201,16 +201,16 @@ const AdminDashboard = ({ user, showToast }) => {
                 <div key={course.id} className="approval-card">
                   <div className="approval-info">
                     <h3>{course.title}</h3>
-                    <p><strong>Trener:</strong> {course.trainer_name} · <strong>Poziom:</strong> {course.level} · <strong>Czas:</strong> {course.duration}</p>
+                    <p><strong>Autor:</strong> {course.trainer_name} · <strong>Poziom:</strong> {course.level} · <strong>Czas:</strong> {course.duration}</p>
                     <p className="approval-desc">{course.description}</p>
-                    {course.trainer_notes && <div className="trainer-notes-box"><strong>📝 Uwagi trenera:</strong> {course.trainer_notes}</div>}
+                    {course.trainer_notes && <div className="trainer-notes-box"><strong>📝 Uwagi autora:</strong> {course.trainer_notes}</div>}
                     <p style={{fontSize:'12px',color:'var(--text-muted)'}}>Przesłano: {new Date(course.created_at).toLocaleDateString('pl-PL')}</p>
                   </div>
                   <div className="approval-actions">
                     <button className="button-secondary" onClick={() => navigate(`/course/${course.id}`)}>👁 Podgląd</button>
                     <button className="btn-action" style={{color:'#22c55e',borderColor:'#22c55e'}} onClick={() => handleApproveCourse(course.id)}>✓ Zatwierdź</button>
                     <button className="btn-action danger" onClick={() => setRejectCourseId(course.id)}>✗ Odrzuć</button>
-                    <button className="btn-action" onClick={() => navigate(`/trainer/edit-course/${course.id}`)}>✏️ Edytuj</button>
+                    <button className="btn-action" onClick={() => navigate(`/admin/edit-course/${course.id}`)}>✏️ Edytuj</button>
                   </div>
                 </div>
               ))}
@@ -239,7 +239,7 @@ const AdminDashboard = ({ user, showToast }) => {
                   <tr key={u.id}>
                     <td><strong>{u.name}</strong></td>
                     <td>{u.email}</td>
-                    <td><select value={u.role} onChange={e => handleChangeRole(u.id, e.target.value)} className="role-select"><option value="user">User</option><option value="trainer">Trainer</option><option value="admin">Admin</option></select></td>
+                    <td><select value={u.role} onChange={e => handleChangeRole(u.id, e.target.value)} className="role-select"><option value="user">User</option><option value="admin">Admin</option></select></td>
                     <td>{u.enrolled_count||0}</td>
                     <td>{u.completed_count||0}</td>
                     <td><span style={{padding:'3px 8px',borderRadius:'10px',fontSize:'11px',fontWeight:700, background: u.email_notifications !== 0 ? 'rgba(34,197,94,0.1)' : 'rgba(128,128,128,0.1)', color: u.email_notifications !== 0 ? '#22c55e' : '#888'}}>{u.email_notifications !== 0 ? '✓ Tak' : '✗ Nie'}</span></td>
@@ -263,7 +263,7 @@ const AdminDashboard = ({ user, showToast }) => {
         <section className="dashboard-section">
           <div className="section-header">
             <h2>Kursy ({courses.length})</h2>
-            <button className="button-primary" onClick={() => navigate('/trainer/create-course')}>➕ Nowy kurs</button>
+            <button className="button-primary" onClick={() => navigate('/admin/create-course')}>➕ Nowy kurs</button>
           </div>
           <div className="admin-table-wrapper">
             <table className="admin-table">
@@ -294,7 +294,7 @@ const AdminDashboard = ({ user, showToast }) => {
                     <td>
                       <div className="table-actions">
                         <button className="btn-action" onClick={() => navigate(`/course/${course.id}`)}>👁</button>
-                        <button className="btn-action" onClick={() => navigate(`/trainer/edit-course/${course.id}`)}>✏️</button>
+                        <button className="btn-action" onClick={() => navigate(`/admin/edit-course/${course.id}`)}>✏️</button>
                         <button className="btn-action" onClick={() => { setAssignCourseId(String(course.id)); setShowAssign(true); }}>📋</button>
                         <button className="btn-action" onClick={() => handleDuplicateCourse(course.id, course.title)} title="Kopiuj kurs">⧉ Kopiuj</button>
                         <button className="btn-action danger" onClick={() => handleDeleteCourse(course.id)}>🗑️</button>
@@ -365,7 +365,7 @@ const AdminDashboard = ({ user, showToast }) => {
               <div className="bf-group"><label>Imię i nazwisko</label><input type="text" value={newUser.name} onChange={e => setNewUser({...newUser, name:e.target.value})} required /></div>
               <div className="bf-group"><label>Email</label><input type="email" value={newUser.email} onChange={e => setNewUser({...newUser, email:e.target.value})} required /></div>
               <div className="bf-group"><label>Hasło</label><input type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password:e.target.value})} required /></div>
-              <div className="bf-group"><label>Rola</label><select value={newUser.role} onChange={e => setNewUser({...newUser, role:e.target.value})}><option value="user">User</option><option value="trainer">Trainer</option><option value="admin">Admin</option></select></div>
+              <div className="bf-group"><label>Rola</label><select value={newUser.role} onChange={e => setNewUser({...newUser, role:e.target.value})}><option value="user">User</option><option value="admin">Admin</option></select></div>
               <div className="modal-footer">
                 <button type="button" className="button-secondary" onClick={() => setShowAddUser(false)}>Anuluj</button>
                 <button type="submit" className="button-primary">Dodaj</button>

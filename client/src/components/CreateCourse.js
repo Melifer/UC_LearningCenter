@@ -259,7 +259,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
     };
 
     try {
-      const url = editMode ? `http://localhost:3002/api/trainer/update-course/${courseId}` : 'http://localhost:3002/api/trainer/create-course';
+      const url = editMode ? `http://localhost:3002/api/admin/update-course/${courseId}` : 'http://localhost:3002/api/admin/create-course';
       const method = editMode ? 'PUT' : 'POST';
       const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const data = await res.json();
