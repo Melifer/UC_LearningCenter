@@ -344,25 +344,6 @@ async function createDefaultData() {
 
 // ============ ENDPOINTS API ============
 
-// Główny endpoint - informacja o API
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Learning Center API',
-    version: '2.0.0',
-    endpoints: {
-      'POST /api/register': 'Register a new user',
-      'POST /api/login': 'Login user',
-      'GET /api/courses': 'Get all courses',
-      'GET /api/courses/:id': 'Get course details',
-      'POST /api/enroll': 'Enroll in a course',
-      'GET /api/my-courses/:userId': 'Get user enrolled courses',
-      'POST /api/lesson/complete': 'Mark lesson as completed',
-      'POST /api/quiz/submit': 'Submit quiz answers',
-      'GET /api/certificate/:userId/:courseId': 'Generate certificate PDF'
-    }
-  });
-});
-
 // Endpoint rejestracji
 app.post('/api/register', async (req, res) => {
   const { email, password, name } = req.body;
