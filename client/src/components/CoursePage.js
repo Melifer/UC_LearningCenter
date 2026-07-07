@@ -158,9 +158,9 @@ const CoursePage = ({ user, showToast }) => {
           <h1>{course.title}</h1>
           <p className="course-overview-desc">{course.description}</p>
           {course.trainer_name && (
-            <div className="course-trainer-info">
-              <span className="trainer-avatar">{course.trainer_name[0]}</span>
-              <span>Autor: <strong>{course.trainer_name}</strong></span>
+            <div className="course-author-info">
+              <span className="author-avatar">{course.trainer_name[0]}</span>
+              <span>Opracowanie: <strong>{course.trainer_name}</strong></span>
             </div>
           )}
 
@@ -168,7 +168,8 @@ const CoursePage = ({ user, showToast }) => {
             <span>🗂 {course.modules?.length || 0} modułów</span>
             <span>📖 {totalLessons} lekcji</span>
             <span>❓ {course.quiz?.questions?.length || 0} pytań quizowych</span>
-            <span>{course.is_free ? '🆓 Bezpłatny' : `💳 $${course.price}`}</span>
+            {course.mandatory && <span className="badge-mandatory">OBOWIĄZKOWE</span>}
+            {course.deadline && <span style={{color:'#d97706'}}>⏰ Do: {new Date(course.deadline).toLocaleDateString('pl-PL')}</span>}
           </div>
 
           {!enrolled ? (

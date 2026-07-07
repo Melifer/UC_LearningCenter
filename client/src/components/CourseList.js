@@ -75,7 +75,8 @@ const CourseList = ({ user }) => {
                   <p>{course.description?.substring(0, 100)}...</p>
                   <div className="catalog-meta">
                     <span>⏱ {course.duration}</span>
-                    <span className={course.is_free ? 'price-free' : 'price-paid'}>{course.is_free ? '🆓 Bezpłatny' : `$${course.price}`}</span>
+                    {course.mandatory && <span className="badge-mandatory" style={{fontSize:'11px'}}>OBOWIĄZKOWE</span>}
+                    {course.refresher_months > 0 && <span style={{fontSize:'11px',color:'#1d6fa4'}}>♻️ co {course.refresher_months} mies.</span>}
                   </div>
                 </div>
                 <div className="catalog-card-footer">

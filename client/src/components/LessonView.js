@@ -7,6 +7,41 @@ function getYoutubeId(url) {
   return m ? m[1] : null;
 }
 
+function mdToHtml(text) {
+  if (!text) return '';
+  if (text.trim().startsWith('<')) return text;
+  // Tables: | col | col |
+  text = text.replace(/^\|(.+)\|\s*$/gm, (line) => {
+    const cells = line.split('|').slice(1, -1).map(c => c.trim());
+    return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+  });
+  text = text.replace(/(<tr>.*<\/tr>\n)+/g, (m) => {
+    const rows = m.trim().split('\n').filter(r => !r.match(/^<tr><td>[-:| ]+<\/td>/));
+    if (!rows.length) return m;
+    return '<table class="lesson-table"><tbody>' + rows.join('') + '</tbody></table>';
+  });
+  return text
+    .replace(/^# (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^## (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li class="numbered">$1</li>')
+    .replace(/(<li.*>.*<\/li>\n?)+/g, (m) => {
+      const isNum = m.includes('class="numbered"');
+      const tag = isNum ? 'ol' : 'ul';
+      return `<${tag}>${m}</${tag}>`;
+    })
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:16px 0"/>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hbulipcobdatse])(.+)$/gm, '<p>$1</p>')
+    .replace(/<p><\/p>/g, '');
+}
+
 const LessonView = ({ user, showToast }) => {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
@@ -185,7 +220,7 @@ const LessonView = ({ user, showToast }) => {
 
         {/* Content */}
         {lesson.content && (
-          <div className="lesson-content-body" dangerouslySetInnerHTML={{ __html: lesson.content }} />
+          <div className="lesson-content-body" dangerouslySetInnerHTML={{ __html: mdToHtml(lesson.content) }} />
         )}
 
         {/* Footer navigation */}

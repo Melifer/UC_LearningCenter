@@ -1,23 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function mdToHtml(text) {
   if (!text) return '';
-  if (text.trim().startsWith('<')) return text; // already HTML
+  if (text.trim().startsWith('<')) return text;
+  // Tables
+  text = text.replace(/^\|(.+)\|\s*$/gm, (line) => {
+    const cells = line.split('|').slice(1, -1).map(c => c.trim());
+    return '<tr>' + cells.map(c => `<td>${c.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</td>`).join('') + '</tr>';
+  });
+  text = text.replace(/(<tr>.*<\/tr>\n?)+/g, (m) => {
+    const rows = m.trim().split('\n').filter(r => !r.match(/^<tr><td>[- |:]+<\/td>/));
+    return '<table class="slide-table"><tbody>' + rows.join('') + '</tbody></table>';
+  });
   return text
     .replace(/^# (.+)$/gm, '<h2>$1</h2>')
     .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^### (.+)$/gm, '<h4>$1</h4>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/^\- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`)
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:12px 0"/>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-    .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
     .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hbulipcobda])(.+)$/gm, '<p>$1</p>')
+    .replace(/^(?!<[hbulipcobdatse])(.+)$/gm, '<p>$1</p>')
     .replace(/<p><\/p>/g, '');
 }
 
@@ -27,126 +32,125 @@ const SlidesViewer = () => {
   const [slides, setSlides] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
+  const slideAreaRef = useRef(null);
+  const activeThumbnailRef = useRef(null);
 
   useEffect(() => {
-    fetchSlides();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetch(`http://localhost:3002/api/courses/${courseId}/slides`)
+      .then(r => r.ok ? r.json() : { slides: [] })
+      .then(d => setSlides(d.slides || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [courseId]);
 
-  const fetchSlides = async () => {
-    try {
-      const response = await fetch(`http://localhost:3002/api/courses/${courseId}/slides`);
-      const data = await response.json();
-      
-      if (response.ok && data.slides) {
-        setSlides(data.slides);
-      }
-    } catch (err) {
-      console.error('Error fetching slides:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const goToSlide = (index) => {
+  const goToSlide = (index, e) => {
+    if (e) { e.preventDefault(); e.currentTarget.blur(); }
     setCurrentSlide(index);
-  };
-
-  const nextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
+    // Scroll slide display to top, not the page
+    if (slideAreaRef.current) {
+      slideAreaRef.current.scrollTop = 0;
     }
   };
 
-  const prevSlide = () => {
-    if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
+  const nextSlide = () => goToSlide(Math.min(currentSlide + 1, slides.length - 1));
+  const prevSlide = () => goToSlide(Math.max(currentSlide - 1, 0));
 
   useEffect(() => {
-    const handleKeyPress = (e) => {
+    const handler = (e) => {
       if (e.key === 'ArrowRight') nextSlide();
       if (e.key === 'ArrowLeft') prevSlide();
     };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSlide, slides.length]);
 
-  if (loading) {
-    return <div className="container"><div className="loading">Loading slides...</div></div>;
-  }
+  // Scroll active thumbnail into view without moving the page
+  useEffect(() => {
+    if (activeThumbnailRef.current) {
+      activeThumbnailRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [currentSlide]);
 
-  if (slides.length === 0) {
-    return (
-      <div className="container">
-        <div className="empty-state">
-          <div className="empty-icon">📊</div>
-          <h3>No slides available</h3>
-          <p>This course doesn't have presentation slides yet.</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="slides-viewer-container"><div className="loading-spinner" style={{margin:'40px auto'}}></div></div>;
+
+  if (slides.length === 0) return (
+    <div className="container" style={{padding:'48px 24px',textAlign:'center'}}>
+      <div style={{fontSize:'48px',marginBottom:'16px'}}>📊</div>
+      <h3>Brak slajdów</h3>
+      <button className="button-secondary" onClick={() => navigate(`/course/${courseId}`)}>← Wróć do kursu</button>
+    </div>
+  );
 
   const slide = slides[currentSlide];
 
   return (
     <div className="slides-viewer-container">
-      <div className="slides-viewer">
-        <div className="slides-topbar">
-          <button className="sidebar-back-btn" onClick={() => navigate(`/course/${courseId}`)}>← Wróć do kursu</button>
-          <h2>Slajdy prezentacyjne</h2>
+      <div className="slides-topbar">
+        <button className="sidebar-back-btn" onClick={() => navigate(`/course/${courseId}`)}>← Wróć do kursu</button>
+        <span className="slides-title">Slajdy szkoleniowe</span>
+        <span className="slides-counter">{currentSlide + 1} / {slides.length}</span>
+      </div>
+
+      <div className="slides-layout">
+        {/* Thumbnail sidebar */}
+        <div className="slides-sidebar">
+          {slides.map((s, i) => (
+            <button
+              key={s.id || i}
+              ref={i === currentSlide ? activeThumbnailRef : null}
+              className={`slide-thumb ${i === currentSlide ? 'active' : ''}`}
+              onClick={(e) => goToSlide(i, e)}
+            >
+              <span className="slide-thumb-num">{i + 1}</span>
+              <span className="slide-thumb-title">{s.title}</span>
+            </button>
+          ))}
         </div>
-        <div className="slide-display">
-          <div className="slide-number-indicator">
-            {currentSlide + 1} / {slides.length}
-          </div>
-          <div className="slide-title-bar">
-            <h2>{slide.title}</h2>
-          </div>
-          <div
-            className="slide-content-html"
-            dangerouslySetInnerHTML={{ __html: mdToHtml(slide.content) }}
-          />
-          {slide.notes && (
-            <div className="slide-notes-section">
-              <h4>📝 Presenter Notes:</h4>
-              <p>{slide.notes}</p>
+
+        {/* Main slide area */}
+        <div className="slide-main" ref={slideAreaRef}>
+          <div className={`slide-card ${slide.layout === 'cover' ? 'slide-card--cover' : ''}`}>
+            <div className="slide-header">
+              <h2 className="slide-title">{slide.title}</h2>
+              {slide.layout !== 'cover' && (
+                <span className="slide-num-badge">{currentSlide + 1}/{slides.length}</span>
+              )}
             </div>
-          )}
-        </div>
-
-        <div className="slides-navigation">
-          <button 
-            className="nav-button prev" 
-            onClick={prevSlide} 
-            disabled={currentSlide === 0}
-          >
-            ← Previous
-          </button>
-          
-          <div className="slides-thumbnails">
-            {slides.map((s, index) => (
-              <button
-                key={s.id}
-                className={`thumbnail-button ${index === currentSlide ? 'active' : ''}`}
-                onClick={() => goToSlide(index)}
-              >
-                {s.slide_number}
-              </button>
-            ))}
+            <div
+              className="slide-content"
+              dangerouslySetInnerHTML={{ __html: mdToHtml(slide.content) }}
+            />
+            {slide.notes && (
+              <div className="slide-notes">
+                <span className="slide-notes-label">📝 Notatki</span>
+                <p>{slide.notes}</p>
+              </div>
+            )}
           </div>
 
-          <button 
-            className="nav-button next" 
-            onClick={nextSlide} 
-            disabled={currentSlide === slides.length - 1}
-          >
-            Next →
-          </button>
+          <div className="slides-nav-buttons">
+            <button
+              className="slide-nav-btn"
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+            >← Poprzedni</button>
+            <div className="slides-progress-dots">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  className={`slide-dot ${i === currentSlide ? 'active' : ''}`}
+                  onClick={(e) => goToSlide(i, e)}
+                  aria-label={`Slajd ${i + 1}`}
+                />
+              ))}
+            </div>
+            <button
+              className="slide-nav-btn"
+              onClick={nextSlide}
+              disabled={currentSlide === slides.length - 1}
+            >Następny →</button>
+          </div>
         </div>
       </div>
     </div>
