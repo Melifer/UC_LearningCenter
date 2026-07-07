@@ -43,7 +43,7 @@ const Login = ({ onLogin }) => {
             </svg>
           </div>
           <div className="hero-headline">
-            <h2>Your UniCredit<br/><span>Training Centre</span></h2>
+            <h2>Your<br/><span>Training Centre</span></h2>
             <p>UniCredit's internal training platform for bank employees. Mandatory compliance training, regulatory requirements and internal policies — all in one place.</p>
           </div>
 

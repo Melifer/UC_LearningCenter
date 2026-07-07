@@ -134,7 +134,7 @@ const CreateCourse = ({ user, showToast, editMode = false }) => {
       slides: [], handbook: [],
     };
     try {
-      const url = editMode ? `http://localhost:3002/api/admin/update-course/${courseId}` : 'http://localhost:3002/api/admin/create-course'\;
+      const url = editMode ? `http://localhost:3002/api/admin/update-course/${courseId}` : 'http://localhost:3002/api/admin/create-course';
       const res = await fetch(url, { method: editMode?'PUT':'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       const data = await res.json();
       if (res.ok) {
