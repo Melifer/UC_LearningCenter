@@ -81,7 +81,7 @@ const CourseList = ({ user }) => {
                 </div>
                 <div className="catalog-card-footer">
                   <button className={isEnrolled ? 'button-secondary' : 'button-primary'} onClick={e => { e.stopPropagation(); navigate(`/course/${course.id}`); }}>
-                    {isEnrolled ? '▶ Kontynuuj naukę' : 'Zobacz kurs →'}
+                    {isEnrolled ? '▶ Continue' : 'View course →'}
                   </button>
                 </div>
               </div>

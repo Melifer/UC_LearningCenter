@@ -16,10 +16,10 @@ const Login = ({ onLogin }) => {
         body: JSON.stringify({ email }),
       });
       const data = await response.json();
-      if (!response.ok) { setError(data.error || 'Błąd logowania'); setLoading(false); return; }
+      if (!response.ok) { setError(data.error || 'Login failed'); setLoading(false); return; }
       onLogin(data.user);
     } catch (err) {
-      setError('Błąd sieci. Spróbuj ponownie.');
+      setError('Network error. Please try again.');
       setLoading(false);
     }
   };

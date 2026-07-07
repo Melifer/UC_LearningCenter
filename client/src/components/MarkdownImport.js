@@ -43,8 +43,8 @@ const MarkdownImport = ({ showToast }) => {
   };
 
   const exampleFormat = `---
-title: "Tytuł szkolenia"
-description: "Opis szkolenia"
+title: "Training Title"
+description: "Training description"
 level: "Intermediate"
 duration: "2 hours"
 mandatory: true
@@ -53,35 +53,23 @@ refresher_months: 12
 passing_score: 100
 ---
 
-# Module 1: Tytuł modułu
+# Module 1: Module Title
 
-## Lesson 1.1: Tytuł lekcji
-Treść lekcji w **markdown**...
-
----SLIDES---
-
-## Slide 1
-**Title:** Tytuł slajdu
-**Content:**
-Treść slajdu...
-
----HANDBOOK---
-
-## Chapter 1: Tytuł rozdziału
-Treść rozdziału...
+## Lesson 1.1: Lesson Title
+Lesson content in **markdown**...
 
 ---QUIZ---
 **Passing Score:** 100
 
 ### Q1
-**Question:** Treść pytania?
+**Question:** Question text?
 **Options:**
-A) Opcja A
-B) Opcja B
-C) Opcja C
-D) Opcja D
+A) Option A
+B) Option B
+C) Option C
+D) Option D
 **Correct:** B
-**Explanation:** Wyjaśnienie odpowiedzi...`;
+**Explanation:** Why this answer is correct...`;
 
   return (
     <div className="container md-import-page">
@@ -136,7 +124,7 @@ D) Opcja D
             <ul>
               <li>✅ Metadane kursu (tytuł, opis, poziom, czas trwania)</li>
               <li>✅ Oznaczenia: obowiązkowy, termin, refresher</li>
-              <li>✅ Moduły i lekcje z treścią</li>
+              <li>✅ Modules and lessons with content</li>
               <li>✅ Slajdy szkoleniowe</li>
               <li>✅ Handbook (podręcznik)</li>
               <li>✅ Quiz z pytaniami i wyjaśnieniami</li>

@@ -82,7 +82,7 @@ const QuizPage = ({ user }) => {
                   🎓 Pobierz Certyfikat PDF
                 </button>
               )}
-              <button className="button-secondary" onClick={() => navigate(`/course/${courseId}`)}>← Wróć do kursu</button>
+              <button className="button-secondary" onClick={() => navigate(`/course/${courseId}`)}>← Back to course</button>
               {!result.passed && (
                 <button className="button-secondary" onClick={() => { setResult(null); setAnswers({}); setCurrentQuestion(0); }}>🔄 Spróbuj ponownie</button>
               )}
@@ -130,7 +130,7 @@ const QuizPage = ({ user }) => {
     <div className="quiz-page-wrapper">
       <div className="container quiz-page">
         <div className="quiz-header">
-          <button className="button-secondary back-button" onClick={() => navigate(`/course/${courseId}`)}>← Wróć</button>
+          <button className="button-secondary back-button" onClick={() => navigate(`/course/${courseId}`)}>← Back</button>
           <div className="quiz-title-area"><h1>{quiz.title}</h1><p className="quiz-info">{questions.length} pytań • Próg zaliczenia: {quiz.passing_score}%</p></div>
           <div className="quiz-counter">{answeredCount}/{questions.length} odpowiedzi</div>
         </div>

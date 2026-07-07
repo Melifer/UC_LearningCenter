@@ -57,7 +57,7 @@ const CertificatesPage = ({ user }) => {
               </div>
               <div className="cert-card-actions">
                 <a href={`http://localhost:3002/api/certificate/${user.id}/${cert.courseId}`} target="_blank" rel="noreferrer" className="button-primary cert-dl-btn">📄 Download PDF</a>
-                <button className="button-secondary" onClick={() => navigate(`/course/${cert.courseId}`)}>Kurs →</button>
+                <button className="button-secondary" onClick={() => navigate(`/course/${cert.courseId}`)}>Course →</button>
               </div>
             </div>
           ))}
