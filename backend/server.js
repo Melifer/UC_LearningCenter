@@ -636,7 +636,7 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
 
     const durationMatch = (data.duration || '').match(/\d+/);
     const cpeHours = durationMatch ? parseInt(durationMatch[0]) : 0;
-    const completedDate = new Date(data.completed_at).toLocaleDateString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric' });
+    const completedDate = new Date(data.completed_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     const certId = `LC-${userId}-${courseId}-${new Date(data.completed_at).getFullYear()}`;
 
     const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 0 });
@@ -677,29 +677,29 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
     doc.fontSize(11).font('Helvetica').fillColor('#555566')
        .text('Learning Center', 52, 60);
 
-    // Cert ID top right
+    // Cert ID
     doc.fontSize(8).font('Helvetica').fillColor('#999999')
-       .text(`Certyfikat nr: ${certId}`, W - 280, 50, { width: 240, align: 'right' });
+       .text(`Certificate No: ${certId}`, W - 280, 50, { width: 240, align: 'right' });
 
     // Main title
     doc.fontSize(30).font('Helvetica-Bold').fillColor('#da291c')
-       .text('CERTYFIKAT UKOŃCZENIA', 32, 118, { width: W - 64, align: 'center' });
+       .text('CERTIFICATE OF COMPLETION', 32, 118, { width: W - 64, align: 'center' });
 
     // Decorative line
     doc.moveTo(W * 0.25, 160).lineTo(W * 0.75, 160).lineWidth(1.5).stroke('#da291c');
 
-    // "Niniejszym zaświadcza się, że"
+    // Sub-header
     doc.fontSize(11).font('Helvetica').fillColor('#666677')
-       .text('Niniejszym zaświadcza się, że', 32, 176, { width: W - 64, align: 'center' });
+       .text('This is to certify that', 32, 176, { width: W - 64, align: 'center' });
 
-    // Participant name — derived from email if needed
+    // Participant name
     const displayName = (data.name && data.name.trim()) ? data.name : nameFromEmail(data.email);
     doc.fontSize(28).font('Helvetica-Bold').fillColor('#1a1a2e')
        .text(displayName, 32, 198, { width: W - 64, align: 'center' });
 
-    // "ukończył(a) szkolenie"
+    // Completion text
     doc.fontSize(11).font('Helvetica').fillColor('#666677')
-       .text('ukończył(a) z wynikiem pozytywnym szkolenie', 32, 238, { width: W - 64, align: 'center' });
+       .text('has successfully completed the training', 32, 238, { width: W - 64, align: 'center' });
 
     // Course title
     doc.fontSize(18).font('Helvetica-Bold').fillColor('#da291c')

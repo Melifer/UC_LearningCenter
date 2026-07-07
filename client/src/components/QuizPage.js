@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const QuizPage = ({ user }) => {
+const QuizPage = ({ user, showToast }) => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState(null);
-  const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState(null);
+  const [answers, setAnswers] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [result, setResult] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchQuizData();
@@ -26,21 +26,15 @@ const QuizPage = ({ user }) => {
         courseData.quiz.questions.forEach((_, i) => { init[i] = null; });
         setAnswers(init);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
-  const handleAnswerChange = (qIdx, aIdx) => setAnswers({ ...answers, [qIdx]: aIdx });
+  const handleAnswerChange = (qIdx, oIdx) => {
+    setAnswers(prev => ({ ...prev, [qIdx]: oIdx }));
+  };
 
   const handleSubmitQuiz = async () => {
-    if (!user) return;
-    if (Object.values(answers).some(a => a === null)) {
-      // highlight unanswered - just don't submit
-      return;
-    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/quiz/submit', {
@@ -63,33 +57,33 @@ const QuizPage = ({ user }) => {
         <div className="container">
           <div className="result-hero">
             <div className={`result-badge-icon ${result.passed ? 'passed' : 'failed'}`}>{result.passed ? '🎓' : '📚'}</div>
-            <h1>{result.passed ? 'Gratulacje! Zaliczono!' : 'Spróbuj ponownie'}</h1>
-            <p className="result-subtitle">{result.message}</p>
+            <h1>{result.passed ? 'Congratulations! Passed!' : 'Try again'}</h1>
+            <p className="result-subtitle">{result.passed ? 'You passed the quiz!' : `You need at least ${quiz.passing_score}% to pass.`}</p>
             <div className="score-display">
               <div className={`score-circle ${result.passed ? 'pass' : 'fail'}`}>
                 <span className="score-number">{result.score}%</span>
-                <span className="score-label">Wynik</span>
+                <span className="score-label">Score</span>
               </div>
               <div className="score-details">
-                <div className="score-stat"><span className="score-stat-val">{result.correctCount}</span><span className="score-stat-label">Poprawnych</span></div>
-                <div className="score-stat"><span className="score-stat-val">{result.totalQuestions - result.correctCount}</span><span className="score-stat-label">Błędnych</span></div>
-                <div className="score-stat"><span className="score-stat-val">{result.totalQuestions}</span><span className="score-stat-label">Pytań</span></div>
+                <div className="score-stat"><span className="score-stat-val">{result.correctCount}</span><span className="score-stat-label">Correct</span></div>
+                <div className="score-stat"><span className="score-stat-val">{result.totalQuestions - result.correctCount}</span><span className="score-stat-label">Incorrect</span></div>
+                <div className="score-stat"><span className="score-stat-val">{result.totalQuestions}</span><span className="score-stat-label">Questions</span></div>
               </div>
             </div>
             <div className="result-actions">
               {result.passed && (
                 <button className="button-primary" onClick={() => window.open(`/api/certificate/${user.id}/${courseId}`, '_blank')}>
-                  🎓 Pobierz Certyfikat PDF
+                  🎓 Download Certificate PDF
                 </button>
               )}
               <button className="button-secondary" onClick={() => navigate(`/course/${courseId}`)}>← Back to course</button>
               {!result.passed && (
-                <button className="button-secondary" onClick={() => { setResult(null); setAnswers({}); setCurrentQuestion(0); }}>🔄 Spróbuj ponownie</button>
+                <button className="button-secondary" onClick={() => { setResult(null); setAnswers({}); setCurrentQuestion(0); }}>🔄 Try again</button>
               )}
             </div>
           </div>
           <div className="explanations-section">
-            <h2>Omówienie odpowiedzi</h2>
+            <h2>Answer review</h2>
             {(result.questions || []).map((question, qIdx) => {
               const options = JSON.parse(question.options);
               const userAns = result.userAnswers[qIdx];
@@ -98,10 +92,10 @@ const QuizPage = ({ user }) => {
               return (
                 <div key={question.id} className={`explanation-card ${isCorrect ? 'correct' : 'incorrect'}`}>
                   <div className="explanation-header">
-                    <span className={`explanation-badge ${isCorrect ? 'badge-correct' : 'badge-incorrect'}`}>{isCorrect ? '✓ Poprawna' : '✗ Niepoprawna'}</span>
-                    <h3>Pytanie {qIdx + 1}</h3>
+                    <span className={`explanation-badge ${isCorrect ? 'badge-correct' : 'badge-incorrect'}`}>{isCorrect ? '✓ Correct' : '✗ Incorrect'}</span>
+                    <h3>Question {qIdx + 1}</h3>
                   </div>
-                  {question.scenario && <div className="question-scenario-box"><strong>Scenariusz:</strong> {question.scenario}</div>}
+                  {question.scenario && <div className="question-scenario-box"><strong>Scenario:</strong> {question.scenario}</div>}
                   <p className="explanation-question-text">{question.question}</p>
                   <div className="answer-review">
                     {options.map((opt, oIdx) => {
@@ -111,7 +105,7 @@ const QuizPage = ({ user }) => {
                       return <div key={oIdx} className={cls}><span className="option-marker">{oIdx === correct ? '✓' : oIdx === userAns ? '✗' : '○'}</span>{opt}</div>;
                     })}
                   </div>
-                  {question.explanation && <div className="explanation-text"><strong>💡 Wyjaśnienie:</strong> {question.explanation}</div>}
+                  {question.explanation && <div className="explanation-text"><strong>💡 Explanation:</strong> {question.explanation}</div>}
                 </div>
               );
             })}
@@ -131,18 +125,23 @@ const QuizPage = ({ user }) => {
       <div className="container quiz-page">
         <div className="quiz-header">
           <button className="button-secondary back-button" onClick={() => navigate(`/course/${courseId}`)}>← Back</button>
-          <div className="quiz-title-area"><h1>{quiz.title}</h1><p className="quiz-info">{questions.length} pytań • Próg zaliczenia: {quiz.passing_score}%</p></div>
-          <div className="quiz-counter">{answeredCount}/{questions.length} odpowiedzi</div>
+          <div className="quiz-title-area">
+            <h1>{quiz.title}</h1>
+            <p className="quiz-info">{questions.length} questions · Passing score: {quiz.passing_score}%</p>
+          </div>
+          <div className="quiz-counter">{answeredCount}/{questions.length} answered</div>
         </div>
-        <div className="quiz-progress-bar"><div className="quiz-progress-fill" style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}></div></div>
+        <div className="quiz-progress-bar">
+          <div className="quiz-progress-fill" style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}></div>
+        </div>
         <div className="quiz-question-nav">
           {questions.map((_, i) => (
             <button key={i} className={`q-nav-dot ${i === currentQuestion ? 'active' : ''} ${answers[i] !== null ? 'answered' : ''}`} onClick={() => setCurrentQuestion(i)}>{i + 1}</button>
           ))}
         </div>
         <div className="question-card">
-          <div className="question-number-badge">Pytanie {currentQuestion + 1} / {questions.length}</div>
-          {question.scenario && <div className="question-scenario"><div className="scenario-label">📋 Scenariusz</div><p>{question.scenario}</p></div>}
+          <div className="question-number-badge">Question {currentQuestion + 1} / {questions.length}</div>
+          {question.scenario && <div className="question-scenario"><div className="scenario-label">📋 Scenario</div><p>{question.scenario}</p></div>}
           <h2 className="question-text">{question.question}</h2>
           <div className="options-list">
             {options.map((option, oIdx) => (
@@ -155,10 +154,10 @@ const QuizPage = ({ user }) => {
           </div>
         </div>
         <div className="quiz-navigation">
-          <button className="button-secondary" onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))} disabled={currentQuestion === 0}>← Poprzednie</button>
+          <button className="button-secondary" onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))} disabled={currentQuestion === 0}>← Previous</button>
           {currentQuestion < questions.length - 1
-            ? <button className="button-primary" onClick={() => setCurrentQuestion(currentQuestion + 1)}>Następne →</button>
-            : <button className="button-primary submit-quiz" onClick={handleSubmitQuiz} disabled={submitting || answeredCount < questions.length}>{submitting ? 'Wysyłanie...' : `Wyślij Quiz (${answeredCount}/${questions.length})`}</button>
+            ? <button className="button-primary" onClick={() => setCurrentQuestion(currentQuestion + 1)}>Next →</button>
+            : <button className="button-primary submit-quiz" onClick={handleSubmitQuiz} disabled={submitting || answeredCount < questions.length}>{submitting ? 'Submitting...' : `Submit Quiz (${answeredCount}/${questions.length})`}</button>
           }
         </div>
       </div>
