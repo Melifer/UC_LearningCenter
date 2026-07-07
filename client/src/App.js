@@ -12,51 +12,41 @@ import CreateCourse from './components/CreateCourse';
 import MarkdownImport from './components/MarkdownImport';
 import Footer from './components/Footer';
 import ToastContainer from './components/ToastContainer';
-import SlidesViewer from './components/SlidesViewer';
-import HandbookViewer from './components/HandbookViewer';
 import ProfilePage from './components/ProfilePage';
 import CertificatesPage from './components/CertificatesPage';
-
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [toasts, setToasts] = useState([]);
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
 
   useEffect(() => {
     const loggedInUser = localStorage.getItem("user");
     if (loggedInUser) {
-      setUser(JSON.parse(loggedInUser));
-      setIsAuthenticated(true);
+      try {
+        const parsed = JSON.parse(loggedInUser);
+        setUser(parsed);
+        setIsAuthenticated(true);
+      } catch {}
     }
   }, []);
 
-  useEffect(() => {
-    document.body.className = theme === 'light' ? 'light-theme' : '';
-  }, [theme]);
-
-  const showToast = (message, type = 'success', duration = 3000) => {
+  const showToast = (message, type = 'success', duration = 3500) => {
     const id = Date.now();
     setToasts(prev => [...prev, { id, message, type, duration }]);
   };
-
-  const removeToast = (id) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
+  const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
   const handleLogin = (userData) => {
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     setIsAuthenticated(true);
   };
-
   const handleLogout = () => {
     localStorage.removeItem("user");
     setUser(null);
     setIsAuthenticated(false);
   };
-
   const handleUserUpdate = (updatedUser) => {
     const merged = { ...user, ...updatedUser };
     localStorage.setItem('user', JSON.stringify(merged));
@@ -66,7 +56,7 @@ function App() {
   return (
     <Router>
       <div>
-        <Header user={user} onLogout={handleLogout} theme={theme} onThemeChange={setTheme} />
+        <Header user={user} onLogout={handleLogout} />
         <main>
           <Routes>
             <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/" />} />
@@ -74,9 +64,7 @@ function App() {
             <Route path="/browse" element={isAuthenticated ? <CourseList user={user} /> : <Navigate to="/login" />} />
             <Route path="/course/:courseId" element={isAuthenticated ? <CoursePage user={user} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/course/:courseId/lesson/:lessonId" element={isAuthenticated ? <LessonView user={user} showToast={showToast} /> : <Navigate to="/login" />} />
-            <Route path="/course/:courseId/quiz" element={isAuthenticated ? <QuizPage user={user} /> : <Navigate to="/login" />} />
-            <Route path="/course/:courseId/slides" element={isAuthenticated ? <SlidesViewer /> : <Navigate to="/login" />} />
-            <Route path="/course/:courseId/handbook" element={isAuthenticated ? <HandbookViewer /> : <Navigate to="/login" />} />
+            <Route path="/course/:courseId/quiz" element={isAuthenticated ? <QuizPage user={user} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/profile" element={isAuthenticated ? <ProfilePage user={user} onUserUpdate={handleUserUpdate} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/certificates" element={isAuthenticated ? <CertificatesPage user={user} /> : <Navigate to="/login" />} />
             <Route path="/admin/create-course" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} /> : <Navigate to="/" />} />

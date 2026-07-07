@@ -304,7 +304,20 @@ async function createDefaultData() {
     });
   }
 
-  // Załaduj kurs EBA z markdown jeśli baza jest pusta
+  // Remove legacy test courses (AI Governance, Machine Learning Fundamentals)
+  const legacyTitles = ['AI Governance & Ethics', 'Machine Learning Fundamentals'];
+  legacyTitles.forEach(title => {
+    db.get('SELECT id FROM courses WHERE title=?', [title], (err, row) => {
+      if (row) {
+        db.run('DELETE FROM lessons WHERE module_id IN (SELECT id FROM modules WHERE course_id=?)', [row.id]);
+        db.run('DELETE FROM modules WHERE course_id=?', [row.id]);
+        db.run('DELETE FROM quiz_questions WHERE quiz_id IN (SELECT id FROM quizzes WHERE course_id=?)', [row.id]);
+        db.run('DELETE FROM quizzes WHERE course_id=?', [row.id]);
+        db.run('DELETE FROM enrollments WHERE course_id=?', [row.id]);
+        db.run('DELETE FROM courses WHERE id=?', [row.id], () => console.log(`Removed legacy course: ${title}`));
+      }
+    });
+  });
   setTimeout(() => {
     db.get('SELECT COUNT(*) as count FROM courses', (err, row) => {
       if (!err && row.count === 0) {

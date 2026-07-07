@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function getYoutubeId(url) {
@@ -10,14 +10,13 @@ function getYoutubeId(url) {
 function mdToHtml(text) {
   if (!text) return '';
   if (text.trim().startsWith('<')) return text;
-  // Tables: | col | col |
+  // Tables
   text = text.replace(/^\|(.+)\|\s*$/gm, (line) => {
     const cells = line.split('|').slice(1, -1).map(c => c.trim());
-    return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+    return '<tr>' + cells.map(c => `<td>${c.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}</td>`).join('') + '</tr>';
   });
-  text = text.replace(/(<tr>.*<\/tr>\n)+/g, (m) => {
-    const rows = m.trim().split('\n').filter(r => !r.match(/^<tr><td>[-:| ]+<\/td>/));
-    if (!rows.length) return m;
+  text = text.replace(/(<tr>.*<\/tr>\n?)+/g, (m) => {
+    const rows = m.trim().split('\n').filter(r => !r.match(/^<tr><td>[- |:]+<\/td>/));
     return '<table class="lesson-table"><tbody>' + rows.join('') + '</tbody></table>';
   });
   return text
@@ -28,12 +27,8 @@ function mdToHtml(text) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/`(.+?)`/g, '<code>$1</code>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/^\d+\. (.+)$/gm, '<li class="numbered">$1</li>')
-    .replace(/(<li.*>.*<\/li>\n?)+/g, (m) => {
-      const isNum = m.includes('class="numbered"');
-      const tag = isNum ? 'ol' : 'ul';
-      return `<${tag}>${m}</${tag}>`;
-    })
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
     .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:16px 0"/>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
@@ -53,6 +48,10 @@ const LessonView = ({ user, showToast }) => {
   const [completed, setCompleted] = useState(false);
   const [progress, setProgress] = useState({ lessons: [] });
 
+  // Scroll fix: ref to active lesson button
+  const activeLessonRef = useRef(null);
+  const sidebarRef = useRef(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -61,24 +60,21 @@ const LessonView = ({ user, showToast }) => {
       if (!res.ok) return;
       setCourse(courseData);
 
-      // Flatten all lessons with module context
       const flat = [];
       for (const mod of courseData.modules || []) {
         for (const l of mod.lessons || []) {
-          flat.push({ ...l, moduleName: mod.title, moduleId: mod.id });
+          flat.push({ ...l, moduleName: mod.title });
         }
       }
       setAllLessons(flat);
-
-      const found = flat.find(l => l.id === parseInt(lessonId));
-      setLesson(found || null);
+      setLesson(flat.find(l => l.id === parseInt(lessonId)) || null);
 
       if (user) {
         const progRes = await fetch(`http://localhost:3002/api/course/${courseId}/progress/${user.id}`);
         if (progRes.ok) {
           const progData = await progRes.json();
           setProgress(progData);
-          const lp = progData.lessons.find(l => l.id === parseInt(lessonId));
+          const lp = progData.lessons?.find(l => l.id === parseInt(lessonId));
           setCompleted(lp?.completed === 1);
         }
       }
@@ -87,6 +83,13 @@ const LessonView = ({ user, showToast }) => {
   }, [courseId, lessonId, user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Scroll active lesson into view WITHOUT moving the page
+  useEffect(() => {
+    if (activeLessonRef.current) {
+      activeLessonRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [lessonId]);
 
   const handleComplete = async () => {
     if (!user) return;
@@ -99,29 +102,23 @@ const LessonView = ({ user, showToast }) => {
       });
       if (res.ok) {
         setCompleted(true);
-        showToast && showToast('Lekcja ukończona! 🎉', 'success');
-        // Auto-go to next lesson after 1s
+        showToast && showToast('Lesson completed! ✓', 'success');
         const idx = allLessons.findIndex(l => l.id === parseInt(lessonId));
         const next = allLessons[idx + 1];
         if (next) {
-          setTimeout(() => navigate(`/course/${courseId}/lesson/${next.id}`), 1200);
+          setTimeout(() => navigate(`/course/${courseId}/lesson/${next.id}`), 1000);
         }
       } else {
-        showToast && showToast('Błąd zapisu postępu', 'error');
+        showToast && showToast('Error saving progress', 'error');
       }
-    } catch { showToast && showToast('Błąd połączenia', 'error'); }
+    } catch { showToast && showToast('Connection error', 'error'); }
     finally { setCompleting(false); }
   };
 
-  const isLessonDone = (id) => progress.lessons.find(l => l.id === id)?.completed === 1;
+  const isLessonDone = (id) => progress.lessons?.find(l => l.id === id)?.completed === 1;
 
-  if (loading) return (
-    <div className="lesson-loading">
-      <div className="loading-spinner"></div>
-    </div>
-  );
-
-  if (!lesson) return <div className="container"><div className="error-message">Lekcja nie znaleziona</div></div>;
+  if (loading) return <div className="lesson-loading"><div className="loading-spinner"></div></div>;
+  if (!lesson) return <div className="container"><div className="error-message">Lesson not found</div></div>;
 
   const currentIdx = allLessons.findIndex(l => l.id === parseInt(lessonId));
   const prevLesson = allLessons[currentIdx - 1];
@@ -133,15 +130,14 @@ const LessonView = ({ user, showToast }) => {
 
   return (
     <div className="lesson-page-layout">
-      {/* LEFT SIDEBAR: Lesson navigation */}
-      <aside className="lesson-sidebar">
+      <aside className="lesson-sidebar" ref={sidebarRef}>
         <div className="lesson-sidebar-top">
-          <button className="sidebar-back-btn" onClick={() => navigate(`/course/${courseId}`)}>← Kurs</button>
+          <button className="sidebar-back-btn" onClick={() => navigate(`/course/${courseId}`)}>← Back to course</button>
           <div className="lesson-sidebar-progress">
             <div className="sidebar-progress-bar">
               <div className="sidebar-progress-fill" style={{ width: `${progressPct}%` }}></div>
             </div>
-            <span>{totalDone}/{totalLessons} • {progressPct}%</span>
+            <span>{totalDone}/{totalLessons} lessons • {progressPct}%</span>
           </div>
         </div>
 
@@ -155,8 +151,9 @@ const LessonView = ({ user, showToast }) => {
                 return (
                   <button
                     key={l.id}
+                    ref={active ? activeLessonRef : null}
                     className={`lesson-nav-item ${active ? 'active' : ''} ${done ? 'done' : ''}`}
-                    onClick={() => navigate(`/course/${courseId}/lesson/${l.id}`)}
+                    onClick={(e) => { e.currentTarget.blur(); navigate(`/course/${courseId}/lesson/${l.id}`); }}
                   >
                     <span className="lesson-nav-check">{done ? '✓' : l.video_url ? '▶' : '○'}</span>
                     <span className="lesson-nav-name">{l.title}</span>
@@ -171,18 +168,12 @@ const LessonView = ({ user, showToast }) => {
               onClick={() => navigate(`/course/${courseId}/quiz`)}
             >
               <span className="lesson-nav-check">📝</span>
-              <span className="lesson-nav-name">Quiz + Certyfikat</span>
+              <span className="lesson-nav-name">Final Quiz + Certificate</span>
             </button>
           </div>
         </nav>
-
-        <div className="lesson-sidebar-resources">
-          <button className="resource-link-btn" onClick={() => navigate(`/course/${courseId}/slides`)}>📊 Slajdy</button>
-          <button className="resource-link-btn" onClick={() => navigate(`/course/${courseId}/handbook`)}>📚 Handbook</button>
-        </div>
       </aside>
 
-      {/* MAIN: Lesson content */}
       <main className="lesson-main">
         <div className="lesson-breadcrumb">
           <span onClick={() => navigate('/')} className="bc-link">Dashboard</span>
@@ -195,11 +186,8 @@ const LessonView = ({ user, showToast }) => {
         <div className="lesson-module-tag">{lesson.moduleName}</div>
         <h1 className="lesson-title">{lesson.title}</h1>
 
-        {completed && (
-          <div className="lesson-completed-banner">✓ Lekcja ukończona</div>
-        )}
+        {completed && <div className="lesson-completed-banner">✓ Lesson completed</div>}
 
-        {/* Video */}
         {lesson.video_url && (
           <div className="lesson-video-wrapper">
             {ytId ? (
@@ -211,19 +199,15 @@ const LessonView = ({ user, showToast }) => {
                 allowFullScreen
               />
             ) : (
-              <video controls>
-                <source src={lesson.video_url} type="video/mp4" />
-              </video>
+              <video controls><source src={lesson.video_url} type="video/mp4" /></video>
             )}
           </div>
         )}
 
-        {/* Content */}
         {lesson.content && (
           <div className="lesson-content-body" dangerouslySetInnerHTML={{ __html: mdToHtml(lesson.content) }} />
         )}
 
-        {/* Footer navigation */}
         <div className="lesson-footer-nav">
           <div className="lesson-footer-left">
             {prevLesson ? (
@@ -232,21 +216,19 @@ const LessonView = ({ user, showToast }) => {
               </button>
             ) : (
               <button className="lesson-nav-btn prev" onClick={() => navigate(`/course/${courseId}`)}>
-                ← Przegląd kursu
+                ← Course overview
               </button>
             )}
           </div>
-
           <div className="lesson-footer-center">
             {!completed ? (
               <button className="btn-complete-lesson" onClick={handleComplete} disabled={completing}>
-                {completing ? 'Zapisywanie...' : '✓ Oznacz jako ukończona'}
+                {completing ? 'Saving...' : '✓ Mark as complete'}
               </button>
             ) : (
-              <span className="lesson-done-chip">✓ Ukończona</span>
+              <span className="lesson-done-chip">✓ Completed</span>
             )}
           </div>
-
           <div className="lesson-footer-right">
             {nextLesson ? (
               <button className="lesson-nav-btn next" onClick={() => navigate(`/course/${courseId}/lesson/${nextLesson.id}`)}>
@@ -254,7 +236,7 @@ const LessonView = ({ user, showToast }) => {
               </button>
             ) : (
               <button className="lesson-nav-btn next" onClick={() => navigate(`/course/${courseId}/quiz`)}>
-                Quiz końcowy →
+                Final Quiz →
               </button>
             )}
           </div>

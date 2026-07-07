@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ProfilePage = ({ user, onUserUpdate, showToast }) => {
+const ProfileePage = ({ user, onUserUpdate, showToast }) => {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState({ name: '', email: '' });
+  const [profile, setProfilee] = useState({ name: '', email: '' });
   const [certs, setCerts] = useState([]);
   const [totalCPE, setTotalCPE] = useState(0);
   const [yearCPE, setYearCPE] = useState(0);
   const [activeTab, setActiveTab] = useState('profile');
   const [saving, setSaving] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
+  const fetchProfilee = useCallback(async () => {
     const res = await fetch(`http://localhost:3002/api/users/${user.id}`);
-    if (res.ok) { const d = await res.json(); setProfile({ name: d.user.name || '', email: d.user.email || '' }); }
+    if (res.ok) { const d = await res.json(); setProfilee({ name: d.user.name || '', email: d.user.email || '' }); }
     const certRes = await fetch(`http://localhost:3002/api/users/${user.id}/certificates`);
     if (certRes.ok) { const cd = await certRes.json(); setCerts(cd.certificates); setTotalCPE(cd.totalCPE); setYearCPE(cd.yearCPE); }
   }, [user.id]);
 
-  useEffect(() => { fetchProfile(); }, [fetchProfile]);
+  useEffect(() => { fetchProfilee(); }, [fetchProfilee]);
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfilee = async () => {
     setSaving(true);
     const res = await fetch(`http://localhost:3002/api/users/${user.id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -27,9 +27,9 @@ const ProfilePage = ({ user, onUserUpdate, showToast }) => {
     });
     const data = await res.json();
     if (res.ok) {
-      showToast && showToast('Profil zaktualizowany', 'success');
+      showToast && showToast('Profile zaktualizowany', 'success');
       onUserUpdate && onUserUpdate(data.user);
-    } else { showToast && showToast(data.error || 'Błąd zapisu', 'error'); }
+    } else { showToast && showToast(data.error || 'Save error', 'error'); }
     setSaving(false);
   };
 
@@ -54,24 +54,24 @@ const ProfilePage = ({ user, onUserUpdate, showToast }) => {
       </div>
 
       <div className="dashboard-tabs">
-        {[['profile','👤 Profil']].map(([key,label]) => (
+        {[['profile','👤 Profile']].map(([key,label]) => (
           <button key={key} className={`tab-button ${activeTab===key?'active':''}`} onClick={() => setActiveTab(key)}>{label}</button>
         ))}
       </div>
 
       {activeTab === 'profile' && (
         <div className="profile-form-card">
-          <h3>Dane osobowe</h3>
+          <h3>Personal information</h3>
           <div className="bf-grid-2">
-            <div className="bf-group"><label>Imię i nazwisko</label><input type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} placeholder="Jan Kowalski" /></div>
-            <div className="bf-group"><label>Adres email</label><input type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} /></div>
+            <div className="bf-group"><label>Full name</label><input type="text" value={profile.name} onChange={e => setProfilee({...profile, name: e.target.value})} placeholder="Jan Kowalski" /></div>
+            <div className="bf-group"><label>Email address</label><input type="email" value={profile.email} onChange={e => setProfilee({...profile, email: e.target.value})} /></div>
           </div>
           <p className="sso-note">🔐 Logowanie odbywa się przez SSO UniCredit. Dane są synchronizowane z katalogu firmowego.</p>
-          <button className="button-primary" onClick={handleSaveProfile} disabled={saving}>{saving ? 'Zapisywanie...' : 'Zapisz zmiany'}</button>
+          <button className="button-primary" onClick={handleSaveProfilee} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button>
         </div>
       )}
     </div>
   );
 };
 
-export default ProfilePage;
+export default ProfileePage;

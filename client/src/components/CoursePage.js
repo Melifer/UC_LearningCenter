@@ -7,6 +7,7 @@ const CoursePage = ({ user, showToast }) => {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolled, setEnrolled] = useState(false);
+  const [quizPassed, setQuizPassed] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [progress, setProgress] = useState({ completed: 0, total: 0, percentage: 0, lessons: [] });
 
@@ -21,9 +22,11 @@ const CoursePage = ({ user, showToast }) => {
 
       if (enrollRes) {
         const enrollData = await enrollRes.json();
-        const isEnrolled = enrollData.courses?.some(c => c.id === parseInt(courseId));
-        setEnrolled(isEnrolled);
-        if (isEnrolled && user) {
+        const enrollment = enrollData.courses?.find(c => c.id === parseInt(courseId));
+        setEnrolled(!!enrollment);
+        // Course is completed only when quiz is passed (completed_at is set by quiz submit)
+        setQuizPassed(!!(enrollment?.completed_at));
+        if (enrollment && user) {
           const progRes = await fetch(`http://localhost:3002/api/course/${courseId}/progress/${user.id}`);
           if (progRes.ok) setProgress(await progRes.json());
         }
@@ -46,17 +49,17 @@ const CoursePage = ({ user, showToast }) => {
       const data = await res.json();
       if (res.ok) {
         setEnrolled(true);
-        showToast && showToast('Zapisano na kurs! Możesz zacząć naukę.', 'success');
+        showToast && showToast('Enrolled successfully! You can now start learning.', 'success');
         fetchAll();
       } else {
-        showToast && showToast(data.error || 'Błąd zapisu', 'error');
+        showToast && showToast(data.error || 'Enrollment failed', 'error');
       }
-    } catch { showToast && showToast('Błąd połączenia', 'error'); }
+    } catch { showToast && showToast('Connection error', 'error'); }
     finally { setEnrolling(false); }
   };
 
   const isLessonCompleted = (lessonId) =>
-    progress.lessons.find(l => l.id === lessonId)?.completed === 1;
+    progress.lessons?.find(l => l.id === lessonId)?.completed === 1;
 
   const getFirstUncompletedLesson = () => {
     if (!course) return null;
@@ -68,21 +71,14 @@ const CoursePage = ({ user, showToast }) => {
     return course.modules?.[0]?.lessons?.[0]?.id || null;
   };
 
-  if (loading) return (
-    <div className="course-loading">
-      <div className="loading-spinner"></div>
-      <p>Ładowanie kursu...</p>
-    </div>
-  );
-
-  if (!course) return <div className="container"><div className="error-message">Kurs nie znaleziony</div></div>;
+  if (loading) return <div className="course-loading"><div className="loading-spinner"></div></div>;
+  if (!course) return <div className="container"><div className="error-message">Course not found</div></div>;
 
   const totalLessons = course.modules?.reduce((s, m) => s + (m.lessons?.length || 0), 0) || 0;
   const firstUncompletedId = getFirstUncompletedLesson();
 
   return (
     <div className="course-page-layout">
-      {/* LEFT: Course sidebar with lesson list */}
       <aside className="course-sidebar">
         <div className="course-sidebar-header">
           <button className="sidebar-back-btn" onClick={() => navigate('/')}>← Dashboard</button>
@@ -92,7 +88,7 @@ const CoursePage = ({ user, showToast }) => {
               <div className="sidebar-progress-bar">
                 <div className="sidebar-progress-fill" style={{ width: `${progress.percentage}%` }}></div>
               </div>
-              <span className="sidebar-progress-text">{progress.completed}/{progress.total} lekcji • {progress.percentage}%</span>
+              <span className="sidebar-progress-text">{progress.completed}/{progress.total} lessons • {progress.percentage}%</span>
             </div>
           )}
         </div>
@@ -117,9 +113,7 @@ const CoursePage = ({ user, showToast }) => {
                       className={`nav-lesson-item ${done ? 'done' : ''} ${!enrolled ? 'locked' : ''}`}
                       onClick={() => enrolled && navigate(`/course/${courseId}/lesson/${lesson.id}`)}
                     >
-                      <span className="nav-lesson-icon">
-                        {done ? '✓' : lesson.video_url ? '▶' : '📄'}
-                      </span>
+                      <span className="nav-lesson-icon">{done ? '✓' : lesson.video_url ? '▶' : '📄'}</span>
                       <span className="nav-lesson-title">{lesson.title}</span>
                       <span className="nav-lesson-dur">{lesson.duration}m</span>
                     </button>
@@ -128,95 +122,98 @@ const CoursePage = ({ user, showToast }) => {
               </div>
             );
           })}
-
           {course.quiz && (
             <div className="nav-module">
               <button
-                className={`nav-lesson-item quiz-item ${!enrolled ? 'locked' : ''}`}
+                className={`nav-lesson-item quiz-item ${quizPassed ? 'done' : ''} ${!enrolled ? 'locked' : ''}`}
                 onClick={() => enrolled && navigate(`/course/${courseId}/quiz`)}
               >
-                <span className="nav-lesson-icon">📝</span>
-                <span className="nav-lesson-title">Quiz końcowy + Certyfikat</span>
+                <span className="nav-lesson-icon">{quizPassed ? '✓' : '📝'}</span>
+                <span className="nav-lesson-title">Final Quiz + Certificate</span>
               </button>
             </div>
           )}
         </nav>
-
-        {enrolled && (
-          <div className="sidebar-resources">
-            <p className="resources-label">Materiały dodatkowe</p>
-            <button className="resource-link-btn" onClick={() => navigate(`/course/${courseId}/slides`)}>📊 Slajdy</button>
-            <button className="resource-link-btn" onClick={() => navigate(`/course/${courseId}/handbook`)}>📚 Handbook</button>
-          </div>
-        )}
       </aside>
 
-      {/* RIGHT: Course overview / CTA */}
       <main className="course-main-content">
         <div className="course-overview-hero">
-          <div className="course-overview-badge">{course.level} • {course.duration}</div>
+          <div className="course-overview-badge">
+            {course.level} · {course.duration}
+            {course.mandatory && <span className="badge-mandatory" style={{marginLeft:'10px'}}>MANDATORY</span>}
+          </div>
           <h1>{course.title}</h1>
           <p className="course-overview-desc">{course.description}</p>
-          {course.trainer_name && (
-            <div className="course-author-info">
-              <span className="author-avatar">{course.trainer_name[0]}</span>
-              <span>Opracowanie: <strong>{course.trainer_name}</strong></span>
-            </div>
-          )}
 
           <div className="course-overview-stats">
-            <span>🗂 {course.modules?.length || 0} modułów</span>
-            <span>📖 {totalLessons} lekcji</span>
-            <span>❓ {course.quiz?.questions?.length || 0} pytań quizowych</span>
-            {course.mandatory && <span className="badge-mandatory">OBOWIĄZKOWE</span>}
-            {course.deadline && <span style={{color:'#d97706'}}>⏰ Do: {new Date(course.deadline).toLocaleDateString('pl-PL')}</span>}
+            <span>🗂 {course.modules?.length || 0} modules</span>
+            <span>📖 {totalLessons} lessons</span>
+            <span>❓ {course.quiz?.questions?.length || 0} quiz questions</span>
+            {course.refresher_months > 0 && <span>♻️ Refresher every {course.refresher_months}mo</span>}
+            {course.deadline && <span style={{color:'#d97706'}}>⏰ Due: {new Date(course.deadline).toLocaleDateString('en-GB')}</span>}
           </div>
 
           {!enrolled ? (
             <button className="btn-enroll" onClick={handleEnroll} disabled={enrolling}>
-              {enrolling ? 'Zapisywanie...' : '▶ Zacznij za darmo'}
+              {enrolling ? 'Enrolling...' : '▶ Start course'}
             </button>
+          ) : quizPassed ? (
+            <div className="btn-completed-state">
+              <span>🎓 Course completed</span>
+              <button className="button-secondary" onClick={() => navigate(`/course/${courseId}/quiz`)}>
+                Retake quiz
+              </button>
+            </div>
           ) : (
             <button className="btn-continue" onClick={() => firstUncompletedId && navigate(`/course/${courseId}/lesson/${firstUncompletedId}`)}>
-              {progress.completed > 0 ? '▶ Kontynuuj naukę' : '▶ Zacznij kurs'}
+              {progress.completed > 0 ? '▶ Continue learning' : '▶ Start learning'}
             </button>
           )}
         </div>
 
         {enrolled && (
           <div className="course-progress-overview">
-            <h3>Twój postęp</h3>
+            <h3>Your progress</h3>
             <div className="progress-big-bar">
               <div className="progress-big-fill" style={{ width: `${progress.percentage}%` }}></div>
             </div>
             <div className="progress-big-stats">
-              <span>{progress.completed} ukończonych</span>
-              <span>{progress.total - progress.completed} pozostałych</span>
+              <span>{progress.completed} completed</span>
+              <span>{progress.total - progress.completed} remaining</span>
               <span className="progress-pct">{progress.percentage}%</span>
             </div>
-
-            {progress.percentage === 100 && (
+            {progress.percentage === 100 && !quizPassed && (
               <div className="completion-banner">
+                <span>📝</span>
+                <div>
+                  <strong>All lessons complete!</strong>
+                  <p>Take the final quiz to receive your certificate.</p>
+                </div>
+                <button className="button-primary" onClick={() => navigate(`/course/${courseId}/quiz`)}>Take quiz →</button>
+              </div>
+            )}
+            {quizPassed && (
+              <div className="completion-banner" style={{background:'rgba(26,158,92,0.08)',borderColor:'rgba(26,158,92,0.3)'}}>
                 <span>🎓</span>
                 <div>
-                  <strong>Kurs ukończony!</strong>
-                  <p>Przejdź do quizu aby zdobyć certyfikat.</p>
+                  <strong>Course completed!</strong>
+                  <p>You passed the quiz and earned your certificate.</p>
                 </div>
-                <button className="button-primary" onClick={() => navigate(`/course/${courseId}/quiz`)}>Zrób quiz →</button>
+                <button className="button-primary" onClick={() => navigate('/certificates')}>View certificate →</button>
               </div>
             )}
           </div>
         )}
 
         <div className="course-modules-list">
-          <h3>Zawartość kursu</h3>
+          <h3>Course content</h3>
           {(course.modules || []).map((mod, mi) => {
             const doneCount = mod.lessons?.filter(l => isLessonCompleted(l.id)).length || 0;
             return (
               <div key={mod.id} className="course-module-row">
                 <div className="module-row-header">
                   <div className="module-row-left">
-                    <span className="module-row-num">Moduł {mi + 1}</span>
+                    <span className="module-row-num">Module {mi + 1}</span>
                     <h4>{mod.title}</h4>
                     {mod.description && <p>{mod.description}</p>}
                   </div>

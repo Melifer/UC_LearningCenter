@@ -43,21 +43,21 @@ const Login = ({ onLogin }) => {
             </svg>
           </div>
           <div className="hero-headline">
-            <h2>Twoje centrum<br/><span>szkoleń UniCredit</span></h2>
-            <p>Wewnętrzna platforma szkoleń pracowniczych UniCredit. Szkolenia obowiązkowe z polityk, regulacji bankowych i procedur organizacji — w jednym miejscu.</p>
+            <h2>Your UniCredit<br/><span>Training Centre</span></h2>
+            <p>UniCredit's internal training platform for bank employees. Mandatory compliance training, regulatory requirements and internal policies — all in one place.</p>
           </div>
 
           <div className="hero-stats">
-            <div className="hero-stat"><span className="hero-stat-val">20+</span><span className="hero-stat-label">Szkoleń</span></div>
+            <div className="hero-stat"><span className="hero-stat-val">20+</span><span className="hero-stat-label">Trainings</span></div>
             <div className="hero-stat"><span className="hero-stat-val">100%</span><span className="hero-stat-label">Compliance</span></div>
-            <div className="hero-stat"><span className="hero-stat-val">PDF</span><span className="hero-stat-label">Certyfikaty</span></div>
+            <div className="hero-stat"><span className="hero-stat-val">PDF</span><span className="hero-stat-label">Certificates</span></div>
           </div>
 
           <div className="hero-features">
-            <div className="hero-feature"><span>📋</span> Szkolenia obowiązkowe i uzupełniające</div>
-            <div className="hero-feature"><span>🔔</span> Śledzenie terminów i przypomnień</div>
-            <div className="hero-feature"><span>🎓</span> Certyfikaty PDF po ukończeniu</div>
-            <div className="hero-feature"><span>🏦</span> Regulacje EBA, GDPR, AML i inne</div>
+            <div className="hero-feature"><span>📋</span> Mandatory and optional trainings</div>
+            <div className="hero-feature"><span>🔔</span> Deadline tracking and reminders</div>
+            <div className="hero-feature"><span>🎓</span> PDF certificates upon completion</div>
+            <div className="hero-feature"><span>🏦</span> EBA, GDPR, AML and other regulations</div>
           </div>
         </div>
       </div>
@@ -68,26 +68,26 @@ const Login = ({ onLogin }) => {
             <span className="login-uc-name">UniCredit</span>
             <span className="login-uc-sub">Learning Center</span>
           </div>
-          <h2 className="login-form-title">Zaloguj się</h2>
-          <p className="login-form-sub">Podaj służbowy adres email UniCredit.</p>
+          <h2 className="login-form-title">Sign in</h2>
+          <p className="login-form-sub">Enter your UniCredit corporate email address.</p>
 
           {error && <div className="login-error">{error}</div>}
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="login-field">
-              <label>Służbowy adres email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="imie.nazwisko@unicredit.pl" autoComplete="email" />
+              <label>Corporate email address</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="firstname.lastname@unicredit.com" autoComplete="email" />
             </div>
             <button type="submit" className="login-submit" disabled={loading}>
-              {loading ? <span className="btn-spinner"></span> : 'Zaloguj się przez SSO'}
+              {loading ? <span className="btn-spinner"></span> : 'Sign in with SSO'}
             </button>
           </form>
 
           <div className="sso-info-banner">
-            <span>🔐 Platforma korzysta z logowania korporacyjnego SSO UniCredit</span>
+            <span>🔐 This platform uses UniCredit corporate SSO authentication</span>
           </div>
 
-          <div className="login-divider"><span>konta demonstracyjne</span></div>
+          <div className="login-divider"><span>demo accounts</span></div>
 
           <div className="demo-accounts">
             {demoAccounts.map(acc => (

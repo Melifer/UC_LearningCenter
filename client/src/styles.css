@@ -1,6 +1,6 @@
 /* ==========================================================================
    UNICREDIT LEARNING CENTER - MAIN STYLESHEET
-   Brand: UniCredit Corporate — Red #da291c, Clean Professional
+   Brand: UniCredit Corporate — Red #da291c · Navy #003B6E · White · Black
    ========================================================================== */
 
 /* DESIGN SYSTEM TOKENS */
@@ -8,70 +8,51 @@
     /* UniCredit Brand Colors */
     --uc-red: #da291c;
     --uc-red-hover: #b81e14;
-    --uc-red-glow: rgba(218, 41, 28, 0.2);
-    --uc-red-glass: rgba(218, 41, 28, 0.08);
-    
-    /* Light (Corporate) Palette — Default */
-    --bg-main: #f5f7fa;
+    --uc-red-glow: rgba(218, 41, 28, 0.15);
+    --uc-red-glass: rgba(218, 41, 28, 0.06);
+    --uc-navy: #003B6E;
+    --uc-navy-light: #1d4e89;
+    --uc-black: #0d0d0d;
+
+    /* Corporate Light Palette */
+    --bg-main: #f4f6f8;
     --bg-surface: #ffffff;
     --bg-card: #ffffff;
-    --border-color: #e0e4ec;
-    --text-primary: #1a1a2e;
-    --text-secondary: #555570;
-    --text-muted: #8888aa;
-    
-    /* Semantic Colors */
-    --color-success: #1a9e5c;
-    --color-success-bg: rgba(26, 158, 92, 0.08);
-    --color-success-border: rgba(26, 158, 92, 0.25);
-    
-    --color-warning: #d97706;
-    --color-warning-bg: rgba(217, 119, 6, 0.08);
-    --color-warning-border: rgba(217, 119, 6, 0.25);
-    
-    --color-danger: #da291c;
-    --color-danger-bg: rgba(218, 41, 28, 0.08);
-    --color-danger-border: rgba(218, 41, 28, 0.25);
-    
-    --color-info: #1d6fa4;
-    --color-info-bg: rgba(29, 111, 164, 0.08);
-    --color-info-border: rgba(29, 111, 164, 0.25);
-    
-    --color-gold: #b8860b;
-    --color-gold-bg: rgba(184, 134, 11, 0.08);
-    --color-gold-border: rgba(184, 134, 11, 0.3);
-    
-    /* UI Sizing & Geometry */
-    --border-radius: 8px;
-    --border-radius-lg: 16px;
-    --border-radius-sm: 4px;
-    --header-height: 64px;
-    --footer-height: 40px;
-    --transition-speed: 0.2s;
-    --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
-    --font-ui: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
-    --font-heading: 'DM Sans', 'Helvetica Neue', Arial, sans-serif;
-    --shadow-premium: 0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
-}
+    --border-color: #dde2ea;
+    --text-primary: #0d0d0d;
+    --text-secondary: #4a5568;
+    --text-muted: #8896a9;
 
-/* DARK THEME (opt-in) */
-body.dark-theme, body:not(.light-theme).dark-theme {
-    --bg-main: #f4f6f9;
-    --bg-surface: #ffffff;
-    --bg-card: #f8fafc;
-    --border-color: rgba(0, 0, 0, 0.08);
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --shadow-premium: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.03);
+    /* Semantic Colors */
+    --color-success: #1a7a4a;
+    --color-success-bg: rgba(26, 122, 74, 0.08);
+    --color-success-border: rgba(26, 122, 74, 0.25);
+    --color-warning: #c47700;
+    --color-warning-bg: rgba(196, 119, 0, 0.08);
+    --color-warning-border: rgba(196, 119, 0, 0.25);
+    --color-danger: #da291c;
+    --color-danger-bg: rgba(218, 41, 28, 0.07);
+    --color-danger-border: rgba(218, 41, 28, 0.25);
+    --color-info: #003B6E;
+    --color-info-bg: rgba(0, 59, 110, 0.07);
+    --color-info-border: rgba(0, 59, 110, 0.2);
+
+    /* UI */
+    --border-radius: 6px;
+    --border-radius-lg: 12px;
+    --border-radius-sm: 3px;
+    --header-height: 60px;
+    --footer-height: 44px;
+    --transition-speed: 0.18s;
+    --transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
+    --font-ui: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    --shadow-card: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+    --shadow-elevated: 0 4px 16px rgba(0,0,0,0.10);
 }
 
 /* RESET & BASE STYLES */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body, #root {
     width: 100%;
@@ -81,22 +62,21 @@ html, body, #root {
 
 html, body {
     font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.5;
     color: var(--text-primary);
-    background-color: var(--bg-main);
-    overflow-x: hidden;
-    overflow-y: auto;
     -webkit-font-smoothing: antialiased;
-    transition: background-color var(--transition-speed) var(--transition-curve), color var(--transition-speed) var(--transition-curve);
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: -0.01em;
 }
 
-ul {
-    list-style: none;
-}
+ul { list-style: none; }
 
 a {
     color: var(--uc-red);
@@ -127,86 +107,54 @@ body.light-theme ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* APP GENERAL LAYOUT */
+/* APP HEADER — UniCredit Corporate Style */
 .app-header {
     height: var(--header-height);
     width: 100%;
-    background-color: var(--bg-surface);
-    border-bottom: 1px solid var(--border-color);
+    background: #ffffff;
+    border-bottom: 1px solid #dde2ea;
+    border-top: 3px solid var(--uc-red);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 32px;
-    position: relative;
-    z-index: 100;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
 }
 
-.header-logo-container {
+.header-logo-link {
+    text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
-.uc-logo svg {
-    filter: drop-shadow(0 0 4px var(--uc-red-glow));
-}
+.uc-logo-svg { flex-shrink: 0; }
 
-.logo-text h1 {
-    font-size: 20px;
-    letter-spacing: 0.5px;
-    color: var(--text-primary);
+.header-brand {
+    display: flex;
+    flex-direction: column;
     line-height: 1.1;
-    font-weight: 800;
 }
-
-.logo-text span {
+.header-brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--uc-navy);
+    letter-spacing: -0.3px;
+}
+.header-brand-sub {
     font-size: 11px;
     font-weight: 500;
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--uc-red);
-}
-
-.app-nav {
-    display: flex;
-    gap: 8px;
-    background: rgba(255,255,255,0.02);
-    padding: 6px;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-}
-body.light-theme .app-nav {
-    background: rgba(0,0,0,0.02);
-}
-
-.nav-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    font-family: var(--font-ui);
-    font-weight: 600;
-    font-size: 13px;
-    padding: 10px 18px;
-    border-radius: calc(var(--border-radius) - 4px);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all var(--transition-speed) var(--transition-curve);
-}
-
-.nav-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255,255,255,0.04);
-}
-body.light-theme .nav-btn:hover {
-    background: rgba(0,0,0,0.04);
+    letter-spacing: 0.8px;
 }
 
 .header-nav {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
 }
 
@@ -214,9 +162,9 @@ body.light-theme .nav-btn:hover {
     color: var(--text-secondary);
     text-decoration: none;
     font-family: var(--font-ui);
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
-    padding: 10px 18px;
+    padding: 8px 16px;
     border-radius: var(--border-radius);
     transition: all 0.2s ease;
 }
@@ -8785,25 +8733,32 @@ main { flex: 1; background: var(--bg-main); }
   padding: 8px 12px; border-radius: 0 4px 4px 0; margin: 12px 0;
 }
 
-/* ---- Header — UniCredit style ---- */
-.app-header {
-  background: #ffffff !important;
-  border-bottom: 3px solid var(--uc-red) !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
+/* ---- Header — UniCredit brand overrides (final) ---- */
+.app-header { background: #ffffff !important; }
+.nav-link { color: var(--text-secondary) !important; font-weight: 500 !important; }
+.nav-link:hover, .nav-link.active { color: var(--uc-navy) !important; }
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 7px 14px;
+  border-radius: var(--border-radius);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.header-title { color: #1a1a2e !important; }
-.header-subtitle { display: none; }
-.nav-link { color: var(--text-secondary) !important; }
-.nav-link:hover { color: var(--uc-red) !important; }
+.btn-logout:hover { border-color: var(--uc-red); color: var(--uc-red); }
 
-/* ---- Login hero — UniCredit solid red, professional ---- */
-.login-hero { background: #da291c !important; }
-.login-hero .hero-headline h2 { color: #ffffff !important; font-size: 36px; font-weight: 700; line-height: 1.2; }
-.login-hero .hero-headline h2 span { color: rgba(255,255,255,0.85) !important; }
-.login-hero .hero-headline p { color: rgba(255,255,255,0.85) !important; font-size: 15px; line-height: 1.6; }
+/* ---- Login hero — UniCredit solid red ---- */
+.login-hero { background: var(--uc-navy) !important; }
+.login-hero .hero-headline h2 { color: #ffffff !important; font-size: 32px; font-weight: 700; line-height: 1.25; }
+.login-hero .hero-headline h2 span { color: rgba(255,255,255,0.8) !important; }
+.login-hero .hero-headline p { color: rgba(255,255,255,0.82) !important; font-size: 14px; line-height: 1.65; }
 .login-hero .hero-stat-val { color: #ffffff !important; font-weight: 700; }
-.login-hero .hero-stat-label { color: rgba(255,255,255,0.75) !important; }
-.login-hero .hero-feature { color: rgba(255,255,255,0.9) !important; }
+.login-hero .hero-stat-label { color: rgba(255,255,255,0.7) !important; }
+.login-hero .hero-feature { color: rgba(255,255,255,0.88) !important; }
 
 /* ---- Slides Viewer — full rewrite ---- */
 .slides-viewer-container {

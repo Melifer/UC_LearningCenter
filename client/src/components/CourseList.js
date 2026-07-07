@@ -36,8 +36,8 @@ const CourseList = ({ user }) => {
       <div className="catalog-header">
         <div>
           <button className="sidebar-back-btn" onClick={() => navigate('/')}>← Dashboard</button>
-          <h1>Katalog kursów</h1>
-          <p className="dashboard-subtitle">{courses.length} kursów dostępnych na platformie</p>
+          <h1>Course Catalog</h1>
+          <p className="dashboard-subtitle">{courses.length} courses available</p>
         </div>
       </div>
 
@@ -45,21 +45,21 @@ const CourseList = ({ user }) => {
         <input
           className="catalog-search"
           type="text"
-          placeholder="🔍 Szukaj kursów..."
+          placeholder="🔍 Search courses..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
         <div className="level-filters">
           {['all', 'Beginner', 'Intermediate', 'Advanced'].map(lvl => (
             <button key={lvl} className={`level-filter-btn ${levelFilter === lvl ? 'active' : ''}`} onClick={() => setLevelFilter(lvl)}>
-              {lvl === 'all' ? 'Wszystkie' : lvl}
+              {lvl === 'all' ? 'All' : lvl}
             </button>
           ))}
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="empty-state-small"><p>Brak kursów spełniających kryteria wyszukiwania.</p></div>
+        <div className="empty-state-small"><p>No courses match your search criteria.</p></div>
       ) : (
         <div className="catalog-grid">
           {filtered.map(course => {

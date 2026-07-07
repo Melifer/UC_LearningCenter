@@ -1,12 +1,10 @@
 import React from 'react';
 
-const Footer = () => {
-  return (
-    <footer className="app-footer-bar">
-      <p className="footer-text">&copy; 2026 UniCredit Learning Center</p>
-      <p className="footer-text">All rights reserved</p>
-    </footer>
-  );
-};
+const Footer = () => (
+  <footer className="app-footer-bar">
+    <p className="footer-text">&copy; 2026 UniCredit Learning Center — Internal Training Platform</p>
+    <p className="footer-text">UniCredit S.A. — All rights reserved</p>
+  </footer>
+);
 
 export default Footer;

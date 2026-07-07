@@ -24,14 +24,14 @@ const MarkdownImport = ({ showToast }) => {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Błąd parsowania pliku');
+        setError(data.error || 'Error parsowania pliku');
         setLoading(false);
         return;
       }
       showToast && showToast('Plik wczytany — sprawdź i opublikuj kurs', 'success');
       navigate('/admin/create-course', { state: { importedCourse: data.course } });
     } catch (err) {
-      setError('Błąd sieci: ' + err.message);
+      setError('Error sieci: ' + err.message);
     }
     setLoading(false);
   };
@@ -88,8 +88,8 @@ D) Opcja D
       <div className="catalog-header">
         <button className="sidebar-back-btn" onClick={() => navigate('/')}>← Dashboard</button>
         <div>
-          <h1>Import kursu z Markdown</h1>
-          <p className="dashboard-subtitle">Wczytaj plik .md ze strukturą kursu — sprawdź i opublikuj</p>
+          <h1>Import course from Markdown</h1>
+          <p className="dashboard-subtitle">Upload a .md file with course structure — review and publish</p>
         </div>
       </div>
 
@@ -113,13 +113,13 @@ D) Opcja D
             {loading ? (
               <div className="md-dropzone-inner">
                 <div className="loading-spinner"></div>
-                <p>Parsowanie pliku...</p>
+                <p>Parsing file...</p>
               </div>
             ) : (
               <div className="md-dropzone-inner">
                 <div className="md-dropzone-icon">📄</div>
-                <h3>Przeciągnij plik .md tutaj</h3>
-                <p>lub kliknij aby wybrać plik</p>
+                <h3>Drag .md file here</h3>
+                <p>or click to select file</p>
                 <small>Maksymalny rozmiar: 5 MB</small>
               </div>
             )}
@@ -127,12 +127,12 @@ D) Opcja D
 
           {error && (
             <div className="import-error">
-              <strong>Błąd:</strong> {error}
+              <strong>Error:</strong> {error}
             </div>
           )}
 
           <div className="md-import-info">
-            <h4>Co zostanie zaimportowane:</h4>
+            <h4>What will be imported:</h4>
             <ul>
               <li>✅ Metadane kursu (tytuł, opis, poziom, czas trwania)</li>
               <li>✅ Oznaczenia: obowiązkowy, termin, refresher</li>
@@ -142,13 +142,13 @@ D) Opcja D
               <li>✅ Quiz z pytaniami i wyjaśnieniami</li>
             </ul>
             <p className="md-import-note">
-              Po wczytaniu pliku możesz przejrzeć i edytować całość przed publikacją.
+              After importing, you can review and edit everything before publishing.
             </p>
           </div>
         </div>
 
         <div className="md-format-section">
-          <h3>Format pliku Markdown</h3>
+          <h3>Markdown File Format</h3>
           <pre className="md-format-code">{exampleFormat}</pre>
           <div className="md-format-notes">
             <h4>Uwagi:</h4>
