@@ -170,34 +170,113 @@ Note: `---SLIDES---` and `---HANDBOOK---` sections are parsed but NOT displayed 
 
 ## Branding
 
-- **Logo**: `/images/unicredit-logo.png` (140×28px, official from unicredit.pl)
+- **Logo**: `client/public/images/BiBestLearningCenter.png` — transparent PNG (2320×464px), white background removed via ImageMagick flood-fill
 - **Red**: `#da291c`
-- **Navy**: `#003B6E`  
-- **Black**: `#0d0d0d`
-- **White**: `#ffffff`
+- **Navy**: `#003B6E`
 - **Font**: DM Sans (Google Fonts)
+- **PDF certificates**: DejaVu Sans (bundled in `backend/fonts/`) — required for Polish characters; Helvetica does NOT support Polish
 
 ---
 
-## Demo Accounts
+## Demo / Login Accounts
 
 ```
-admin@unicredit.pl   — admin role
-jan.kowalski@unicredit.pl — user role
-admin@test.com — admin (legacy)
-user@test.com  — user (legacy)
+admin@bibest.eu   — admin role  (type "Melifer" in Sign In → logs in as admin)
+user@bibest.eu    — user role
 ```
-All logins use email only (no password prompt).
+
+Login form accepts **First Last** (name, not email). Logic in `Login.jsx → resolveEmail()`:
+- "John Smith" → `john.smith@bibest.eu`
+- "Melifer" → `admin@bibest.eu` (owner shortcut)
+- Raw email (contains @) → passed through as-is (demo buttons use this)
+
+**Session reset on logout**: `App.jsx → handleLogout` calls `DELETE /api/users/:id/progress` which deletes `enrollments`, `user_progress`, `quiz_results`. Courses appear as "not started" on next login. DB activity is tracked during the session.
+
+---
+
+## Production Deployment (Cyberfolks / DirectAdmin)
+
+**Live URL**: `https://learning.bibest.eu`
+
+### Stack on server
+- Node.js 22.22.2 via CloudLinux Node.js Selector (Phusion Passenger)
+- **No native npm modules** — `sqlite3` and `bcrypt` replaced due to GLIBC_2.38 incompatibility with CentOS 7 server
+  - `sqlite3` → **Node.js built-in `node:sqlite`** via adapter `backend/utils/db-adapter.js`
+  - `bcrypt` → **`bcryptjs`** (pure JS)
+- Required ENV variable in DA: `NODE_OPTIONS = --experimental-sqlite`
+
+### Build & deploy process
+```bash
+# 1. Build frontend (base URL = / for subdomain root)
+cd client && npm run build   # outputs to client/dist/
+
+# 2. Create deploy package
+cd .. && rm -rf _deploy && mkdir -p _deploy
+cp backend/server.js _deploy/server.js
+cp backend/package.json _deploy/package.json
+cp -r backend/utils _deploy/utils
+cp -r backend/fonts _deploy/fonts    # DejaVu fonts for PDF
+cp -r docs _deploy/docs
+mkdir -p _deploy/client/dist && cp -r client/dist/. _deploy/client/dist/
+mkdir -p _deploy/client/public/images
+cp client/public/images/BiBestLearningCenter.png _deploy/client/public/images/
+cd _deploy && zip -r ../bibest-learning-center.zip . --exclude "*.DS_Store"
+```
+
+### Deploy directory structure on server
+```
+/home/wqlwgszjlw/domains/bibest.eu/learning/
+  server.js          ← entry point
+  package.json       ← bcryptjs, express, pdfkit, etc. (NO sqlite3, NO bcrypt)
+  utils/
+    db-adapter.js    ← node:sqlite compatibility layer
+    markdownParser.js
+  fonts/
+    DejaVuSans.ttf
+    DejaVuSans-Bold.ttf
+  client/
+    dist/            ← built React app (served by Express static)
+    public/images/   ← logo PNG
+  docs/courses/      ← markdown course files
+```
+
+### DA Node.js app configuration
+| Setting | Value |
+|---------|-------|
+| App URI | `learning.bibest.eu/` |
+| App Root Directory | `/home/wqlwgszjlw/domains/bibest.eu/learning` |
+| Startup file | `server.js` |
+| Mode | Production |
+| ENV: NODE_OPTIONS | `--experimental-sqlite` |
+
+### Critical gotcha — placeholder file
+When DA creates a subdomain, it places a placeholder `index.html` at:
+`/home/wqlwgszjlw/domains/bibest.eu/public_html/learning/index.html`
+
+**This file must be deleted via FTP** otherwise Apache serves it instead of routing to Node.js (even with Passenger running).
+
+Path to delete: `public_html/learning/index.html`
+
+### FTP structure (Cyberduck connects to domains/bibest.eu/)
+```
+/               ← FTP root = /home/wqlwgszjlw/domains/bibest.eu/
+  learning/     ← Node.js app files (NOT public_html!)
+  public_html/
+    learning/   ← DELETE index.html from here
+    ...
+```
 
 ---
 
 ## Removed Features (do not re-add unless asked)
 
 - ❌ Trainer/trainer role — removed, only user/admin
-- ❌ Slides viewer (SlidesViewer.js) — removed
-- ❌ Handbook viewer (HandbookViewer.js) — removed
-- ❌ Messaging system (MessageCenter.js) — removed
+- ❌ Slides viewer — removed
+- ❌ Handbook viewer — removed
+- ❌ Messaging system — removed
 - ❌ Payment/pricing — removed, all courses free
+- ❌ Status filter tabs (Mandatory/In Progress/Completed) in UserDashboard — removed
+- ❌ Progress bars and completion badges in course catalog — removed (visual only; DB still tracks)
 - ❌ Email notifications toggle — removed
 - ❌ Registration page — removed (SSO auto-provision)
 - ❌ Dark theme toggle — removed, light-only

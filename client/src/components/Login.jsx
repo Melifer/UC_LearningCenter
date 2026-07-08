@@ -96,7 +96,6 @@ const Login = ({ onLogin }) => {
                   type="text"
                   value={nameInput}
                   onChange={e => setNameInput(e.target.value)}
-                  required
                   placeholder="e.g. John Smith"
                   autoComplete="name"
                 />

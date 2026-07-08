@@ -8386,6 +8386,13 @@ body.light-theme .presenter-notes-content {
 #root > div { flex: 1; display: flex; flex-direction: column; }
 main { flex: 1; background: var(--bg-main); }
 
+.session-notice {
+  font-size: 12px;
+  color: var(--color-warning);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
 /* ---- Login Page — BiBest Style ---- */
 .login-uc-brand { display: flex; flex-direction: column; margin-bottom: 20px; }
 /* BiBest form logo — transparent PNG, no frame */

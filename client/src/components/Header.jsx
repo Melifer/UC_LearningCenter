@@ -23,15 +23,15 @@ const Header = ({ user, onLogout }) => {
       <div className="header-controls">
         {user && (
           <div className="user-info">
-            <Link to="/profile" className="user-avatar-link">
-              <span className="user-avatar-small">{(user.name || 'U')[0].toUpperCase()}</span>
-              <span className="user-welcome-text">
-                {user.name}
-                <span className={`role-tag role-${user.role}`}>{user.role}</span>
+              <span className="user-avatar-link">
+                <span className="user-avatar-small">{(user.name || 'U')[0].toUpperCase()}</span>
+                <span className="user-welcome-text">
+                  {user.name}
+                  <span className={`role-tag role-${user.role}`}>{user.role}</span>
+                </span>
               </span>
-            </Link>
-            <button className="btn-logout" onClick={onLogout}>Log out</button>
-          </div>
+              <button className="btn-logout" onClick={onLogout}>Log out</button>
+            </div>
         )}
       </div>
     </header>

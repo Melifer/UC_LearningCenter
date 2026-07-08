@@ -42,6 +42,7 @@ const UserDashboard = ({ user, showToast }) => {
         <div>
           <h1>Welcome, {user.name || user.email.split('@')[0]}!</h1>
           <p className="dashboard-subtitle">BiBest Learning Center — {courses.length} trainings available</p>
+          <p className="session-notice">⚠️ Session progress is cleared on sign-out.</p>
         </div>
         <button className="button-secondary" onClick={() => navigate('/certificates')}>🎓 My certificates</button>
       </div>

@@ -1,6 +1,15 @@
+// Suppress Node.js experimental feature warnings in production
+process.removeAllListeners('warning');
+process.on('warning', (w) => { if (!w.name?.includes('Experimental')) console.warn(w); });
+
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const bcrypt = require('bcrypt');
+
+// Strip /learning prefix if Phusion Passenger doesn't do it automatically.
+// Auto-uses /learning in production (DirectAdmin sets NODE_ENV=production).
+const APP_PREFIX = process.env.APP_PREFIX ||
+  (process.env.NODE_ENV === 'production' ? '/learning' : '');
+const { openDatabase } = require('./utils/db-adapter'); // node:sqlite — no native binaries
+const bcrypt = require('bcryptjs');                   // pure JS — no native binaries
 const cors = require('cors');
 const PDFDocument = require('pdfkit');
 const path = require('path');
@@ -12,19 +21,24 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Strip /learning prefix so routes work whether or not Passenger strips it
+if (APP_PREFIX) {
+  app.use((req, res, next) => {
+    if (req.url.startsWith(APP_PREFIX + '/') || req.url === APP_PREFIX) {
+      req.url = req.url.slice(APP_PREFIX.length) || '/';
+    }
+    next();
+  });
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Połączenie z bazą danych SQLite
-const db = new sqlite3.Database('./learning_center.db', (err) => {
-  if (err) {
-    console.error('Error opening database', err.message);
-  } else {
-    console.log('Connected to the SQLite database.');
-    initializeDatabase();
-  }
-});
+// SQLite via Node.js built-in node:sqlite (no native compilation needed)
+const db = openDatabase('./learning_center.db');
+console.log('Connected to the SQLite database.');
+initializeDatabase();
 
 // Inicjalizacja bazy danych - tworzenie wszystkich tabel
 function initializeDatabase() {
@@ -660,10 +674,22 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
     res.setHeader('Content-Disposition', `inline; filename=certificate-${certId}.pdf`);
     doc.pipe(res);
 
-    // Arial TTF — full Unicode/Polish character support
-    const FONT      = '/System/Library/Fonts/Supplemental/Arial.ttf';
-    const FONT_BOLD = '/System/Library/Fonts/Supplemental/Arial Bold.ttf';
-    const LOGO_PATH = path.join(__dirname, '../client/public/images/BiBestLearningCenter.png');
+    // Fonts & logo — find first existing path (works locally and on production)
+    const findPath = (...paths) => paths.find(p => fs.existsSync(p));
+    const FONT = findPath(
+      path.join(__dirname, 'fonts/DejaVuSans.ttf'),           // production (flat root)
+      path.join(__dirname, '../backend/fonts/DejaVuSans.ttf'), // local dev
+      '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'        // system (Ubuntu/Debian)
+    ) || 'Helvetica';
+    const FONT_BOLD = findPath(
+      path.join(__dirname, 'fonts/DejaVuSans-Bold.ttf'),
+      path.join(__dirname, '../backend/fonts/DejaVuSans-Bold.ttf'),
+      '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+    ) || 'Helvetica-Bold';
+    const LOGO_PATH = findPath(
+      path.join(__dirname, '../client/public/images/BiBestLearningCenter.png'), // local dev
+      path.join(__dirname, 'client/public/images/BiBestLearningCenter.png')     // production
+    );
 
     const W = doc.page.width;
     const H = doc.page.height;
@@ -1453,15 +1479,26 @@ app.post('/api/upload/image', (req, res) => {
 });
 
 // ============ PRODUCTION: Serve React build ============
-const buildPath = path.join(__dirname, '../client/dist');
-if (fs.existsSync(buildPath)) {
-  app.use(express.static(buildPath));
+// Checks multiple paths: local dev (backend/../client/dist), production flat (client/ or client/dist/)
+const buildPath = [
+  path.join(__dirname, '../client/dist'),  // local dev
+  path.join(__dirname, 'client/dist'),     // production with dist subfolder
+  path.join(__dirname, 'client'),          // production flat deploy
+].find(p => fs.existsSync(path.join(p, 'index.html')));
+if (buildPath) {
+  console.log(`Serving React build from: ${buildPath}`);
+  app.use(express.static(buildPath, { dotfiles: 'ignore' }));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
       res.sendFile(path.join(buildPath, 'index.html'));
     }
   });
-  console.log('Serving React build from client/dist/');
+} else {
+  console.warn('React build not found. Checked:', [
+    path.join(__dirname, '../client/dist'),
+    path.join(__dirname, 'client/dist'),
+    path.join(__dirname, 'client'),
+  ]);
 }
 
 app.listen(PORT, () => {

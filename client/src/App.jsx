@@ -69,7 +69,6 @@ function App() {
             <Route path="/course/:courseId" element={isAuthenticated ? <CoursePage user={user} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/course/:courseId/lesson/:lessonId" element={isAuthenticated ? <LessonView user={user} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/course/:courseId/quiz" element={isAuthenticated ? <QuizPage user={user} showToast={showToast} /> : <Navigate to="/login" />} />
-            <Route path="/profile" element={isAuthenticated ? <ProfilePage user={user} onUserUpdate={handleUserUpdate} showToast={showToast} /> : <Navigate to="/login" />} />
             <Route path="/certificates" element={isAuthenticated ? <CertificatesPage user={user} /> : <Navigate to="/login" />} />
             <Route path="/admin/create-course" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} /> : <Navigate to="/" />} />
             <Route path="/admin/edit-course/:courseId" element={isAuthenticated && user?.role === 'admin' ? <CreateCourse user={user} showToast={showToast} editMode={true} /> : <Navigate to="/" />} />
