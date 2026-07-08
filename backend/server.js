@@ -282,8 +282,8 @@ async function createCourseFromParsed(parsed, createdBy) {
 async function createDefaultData() {
   // Konta testowe / demo
   const defaultUsers = [
-    { email: 'admin@unicredit.pl', password: 'admin', role: 'admin', name: 'Admin UniCredit' },
-    { email: 'jan.kowalski@unicredit.pl', password: 'user', role: 'user', name: 'Jan Kowalski' },
+    { email: 'admin@bibest.eu', password: 'admin', role: 'admin', name: 'Admin BiBest' },
+    { email: 'user@bibest.eu', password: 'user', role: 'user', name: 'Demo User' },
     // Legacy test accounts
     { email: 'admin@test.com', password: 'admin', role: 'admin', name: 'Admin User' },
     { email: 'user@test.com', password: 'user', role: 'user', name: 'John Doe' }
@@ -296,9 +296,12 @@ async function createDefaultData() {
         db.run(
           'INSERT INTO users (email, password, role, name) VALUES (?, ?, ?, ?)',
           [user.email, hashedPassword, user.role, user.name],
-          (err) => {
-            if (!err) console.log(`Default user created: ${user.email}`);
-          }
+          (err) => { if (!err) console.log(`Default user created: ${user.email}`); }
+        );
+      } else if (row.role !== user.role || row.name !== user.name) {
+        // Ensure role and name are correct even if auto-provisioned with wrong values
+        db.run('UPDATE users SET role = ?, name = ? WHERE email = ?', [user.role, user.name, user.email],
+          (err) => { if (!err) console.log(`Default user updated: ${user.email} → role=${user.role}`); }
         );
       }
     });
@@ -495,6 +498,19 @@ app.get('/api/courses/:id', (req, res) => {
 });
 
 // Zapisz się na kurs
+// Reset all progress for a user on logout
+app.delete('/api/users/:userId/progress', (req, res) => {
+  const { userId } = req.params;
+  db.serialize(() => {
+    db.run('DELETE FROM enrollments WHERE user_id = ?', [userId]);
+    db.run('DELETE FROM user_progress WHERE user_id = ?', [userId]);
+    db.run('DELETE FROM quiz_results WHERE user_id = ?', [userId], (err) => {
+      if (err) return res.status(500).json({ error: 'Reset failed' });
+      res.json({ message: 'Progress reset' });
+    });
+  });
+});
+
 app.post('/api/enroll', (req, res) => {
   const { userId, courseId } = req.body;
 
@@ -644,22 +660,18 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
     res.setHeader('Content-Disposition', `inline; filename=certificate-${certId}.pdf`);
     doc.pipe(res);
 
+    // Arial TTF — full Unicode/Polish character support
+    const FONT      = '/System/Library/Fonts/Supplemental/Arial.ttf';
+    const FONT_BOLD = '/System/Library/Fonts/Supplemental/Arial Bold.ttf';
+    const LOGO_PATH = path.join(__dirname, '../client/public/images/BiBestLearningCenter.png');
+
     const W = doc.page.width;
     const H = doc.page.height;
-
-    // Background
-    doc.rect(0, 0, W, H).fill('#0c0d12');
-
-    // Red accent bar left
-    doc.rect(0, 0, 8, H).fill('#cc0000');
-
-    // Red accent bar top
-    doc.rect(8, 0, W - 16, 6).fill('#cc0000');
 
     // Background - clean white
     doc.rect(0, 0, W, H).fill('#ffffff');
 
-    // UniCredit red left bar
+    // Red left bar
     doc.rect(0, 0, 12, H).fill('#da291c');
 
     // Red top accent
@@ -671,64 +683,61 @@ app.get('/api/certificate/:userId/:courseId', (req, res) => {
     // Header area - white panel
     doc.rect(32, 24, W - 64, 70).fill('#ffffff').stroke('#e0e0e8');
 
-    // UniCredit name in header
-    doc.fontSize(18).font('Helvetica-Bold').fillColor('#da291c')
-       .text('UniCredit', 52, 38);
-    doc.fontSize(11).font('Helvetica').fillColor('#555566')
-       .text('Learning Center', 52, 60);
+    // BiBest logo in header
+    if (fs.existsSync(LOGO_PATH)) {
+      doc.image(LOGO_PATH, 44, 30, { height: 50 });
+    } else {
+      doc.font(FONT_BOLD).fontSize(18).fillColor('#da291c').text('BiBest', 52, 38);
+      doc.font(FONT).fontSize(11).fillColor('#555566').text('Learning Center', 52, 60);
+    }
 
     // Cert ID
-    doc.fontSize(8).font('Helvetica').fillColor('#999999')
+    doc.font(FONT).fontSize(8).fillColor('#999999')
        .text(`Certificate No: ${certId}`, W - 280, 50, { width: 240, align: 'right' });
 
     // Main title
-    doc.fontSize(30).font('Helvetica-Bold').fillColor('#da291c')
+    doc.font(FONT_BOLD).fontSize(30).fillColor('#da291c')
        .text('CERTIFICATE OF COMPLETION', 32, 118, { width: W - 64, align: 'center' });
 
     // Decorative line
     doc.moveTo(W * 0.25, 160).lineTo(W * 0.75, 160).lineWidth(1.5).stroke('#da291c');
 
     // Sub-header
-    doc.fontSize(11).font('Helvetica').fillColor('#666677')
+    doc.font(FONT).fontSize(11).fillColor('#666677')
        .text('This is to certify that', 32, 176, { width: W - 64, align: 'center' });
 
-    // Participant name
+    // Participant name — Arial Bold handles Polish characters
     const displayName = (data.name && data.name.trim()) ? data.name : nameFromEmail(data.email);
-    doc.fontSize(28).font('Helvetica-Bold').fillColor('#1a1a2e')
+    doc.font(FONT_BOLD).fontSize(28).fillColor('#1a1a2e')
        .text(displayName, 32, 198, { width: W - 64, align: 'center' });
 
     // Completion text
-    doc.fontSize(11).font('Helvetica').fillColor('#666677')
+    doc.font(FONT).fontSize(11).fillColor('#666677')
        .text('has successfully completed the training', 32, 238, { width: W - 64, align: 'center' });
 
     // Course title
-    doc.fontSize(18).font('Helvetica-Bold').fillColor('#da291c')
+    doc.font(FONT_BOLD).fontSize(18).fillColor('#da291c')
        .text(data.title, 60, 260, { width: W - 120, align: 'center' });
 
     // CPE badge
     const badgeY = 308;
     doc.rect(W/2 - 90, badgeY, 180, 48).fill('#1a1a2e');
-    doc.fontSize(22).font('Helvetica-Bold').fillColor('#da291c')
+    doc.font(FONT_BOLD).fontSize(22).fillColor('#da291c')
        .text(`${cpeHours} CPE`, W/2 - 90, badgeY + 6, { width: 180, align: 'center' });
-    doc.fontSize(9).font('Helvetica').fillColor('#aaaaaa')
+    doc.font(FONT).fontSize(9).fillColor('#aaaaaa')
        .text('Continuing Professional Education Hours', W/2 - 90, badgeY + 30, { width: 180, align: 'center' });
 
     // Date
-    doc.fontSize(11).font('Helvetica').fillColor('#555566')
+    doc.font(FONT).fontSize(11).fillColor('#555566')
        .text(`Completed: ${completedDate}`, 32, 374, { width: W - 64, align: 'center' });
 
-    // Footer
+    // Footer — left side only
     const sigY = H - 72;
     doc.moveTo(60, sigY).lineTo(240, sigY).lineWidth(0.5).stroke('#cccccc');
-    doc.moveTo(W - 240, sigY).lineTo(W - 60, sigY).lineWidth(0.5).stroke('#cccccc');
 
-    doc.fontSize(9).font('Helvetica').fillColor('#555566')
-       .text('UniCredit Learning Center', 60, sigY + 6, { width: 180, align: 'center' })
+    doc.font(FONT).fontSize(9).fillColor('#555566')
+       .text('BiBest Learning Center', 60, sigY + 6, { width: 180, align: 'center' })
        .text('Training & Development', 60, sigY + 18, { width: 180, align: 'center' });
-
-    doc.fontSize(9).font('Helvetica').fillColor('#555566')
-       .text('UniCredit S.A.', W - 240, sigY + 6, { width: 180, align: 'center' })
-       .text('Branch in Poland', W - 240, sigY + 18, { width: 180, align: 'center' });
 
     doc.end();
   });
@@ -1444,7 +1453,7 @@ app.post('/api/upload/image', (req, res) => {
 });
 
 // ============ PRODUCTION: Serve React build ============
-const buildPath = path.join(__dirname, '../client/build');
+const buildPath = path.join(__dirname, '../client/dist');
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
   app.get('*', (req, res) => {
@@ -1452,11 +1461,11 @@ if (fs.existsSync(buildPath)) {
       res.sendFile(path.join(buildPath, 'index.html'));
     }
   });
-  console.log('Serving React build from client/build/');
+  console.log('Serving React build from client/dist/');
 }
 
 app.listen(PORT, () => {
-  console.log(`UniCredit Learning Center API running on port ${PORT}`);
+  console.log(`BiBest Learning Center API running on port ${PORT}`);
 });
 
 // Obsługa zamykania połączenia z bazą danych

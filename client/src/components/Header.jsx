@@ -7,11 +7,10 @@ const Header = ({ user, onLogout }) => {
       <div className="header-logo-container">
         <Link to="/" className="header-logo-link">
           <img
-            src="/images/unicredit-logo.png"
-            alt="UniCredit"
+            src="/images/BiBestLearningCenter.png"
+            alt="BiBest Learning Center"
             className="uc-logo-img"
           />
-          <span className="header-brand-sub">Learning Center</span>
         </Link>
       </div>
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# UniCredit Learning Center — skrypt uruchamiający
-# Uzycie:  ./start.sh
-# Stop:    Ctrl+C
+# BiBest Learning Center — startup script
+# Usage:  ./start.sh
+# Stop:   Ctrl+C
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -14,78 +14,79 @@ ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo ""
 echo -e "${BLUE}================================================${NC}"
-echo -e "${BLUE}   UniCredit Learning Center${NC}"
+echo -e "${BLUE}   BiBest Learning Center${NC}"
 echo -e "${BLUE}================================================${NC}"
 echo ""
 
-# Sprawdz Node.js
+# Check Node.js
 if ! command -v node &> /dev/null; then
-    echo -e "${RED}BLAD: Node.js nie jest zainstalowany!${NC}"
-    echo "Pobierz z: https://nodejs.org/ (wersja 18+)"
+    echo -e "${RED}ERROR: Node.js is not installed!${NC}"
+    echo "Download from: https://nodejs.org/ (version 18+)"
     exit 1
 fi
 echo -e "${GREEN}Node.js: $(node -v)${NC}"
 
-# Instalacja backendu
+# Install backend deps
 if [ ! -d "$ROOT_DIR/backend/node_modules" ]; then
-    echo -e "${YELLOW}Instalacja zaleznosci backendu...${NC}"
+    echo -e "${YELLOW}Installing backend dependencies...${NC}"
     npm install --prefix "$ROOT_DIR/backend"
 fi
-echo -e "${GREEN}Backend: zaleznosci OK${NC}"
+echo -e "${GREEN}Backend: dependencies OK${NC}"
 
-# Instalacja frontendu
+# Install frontend deps
 if [ ! -d "$ROOT_DIR/client/node_modules" ]; then
-    echo -e "${YELLOW}Instalacja zaleznosci frontendu (moze trwac 2-3 min)...${NC}"
+    echo -e "${YELLOW}Installing frontend dependencies (may take 2-3 min)...${NC}"
     npm install --prefix "$ROOT_DIR/client"
 fi
-echo -e "${GREEN}Frontend: zaleznosci OK${NC}"
+echo -e "${GREEN}Frontend: dependencies OK${NC}"
 
-# Zwolnij porty
-echo -e "${YELLOW}Zwalnianie portow 3002 i 3003...${NC}"
+# Free ports
+echo -e "${YELLOW}Freeing ports 3000, 3002 and 3003...${NC}"
+lsof -ti :3000 | xargs kill -9 2>/dev/null
 lsof -ti :3002 | xargs kill -9 2>/dev/null
 lsof -ti :3003 | xargs kill -9 2>/dev/null
 sleep 1
 
-# Uruchom backend
-echo -e "${YELLOW}Uruchamianie API (port 3002)...${NC}"
+# Start backend
+echo -e "${YELLOW}Starting API (port 3002)...${NC}"
 node "$ROOT_DIR/backend/server.js" &
 BACKEND_PID=$!
 sleep 2
 
 if ! kill -0 $BACKEND_PID 2>/dev/null; then
-    echo -e "${RED}BLAD: Backend nie uruchomil sie!${NC}"
+    echo -e "${RED}ERROR: Backend failed to start!${NC}"
     exit 1
 fi
-echo -e "${GREEN}API uruchomione (PID: $BACKEND_PID)${NC}"
+echo -e "${GREEN}API running (PID: $BACKEND_PID)${NC}"
 
-# Uruchom frontend
-echo -e "${YELLOW}Uruchamianie interfejsu (port 3003)...${NC}"
+# Start frontend
+echo -e "${YELLOW}Starting UI (port 3003)...${NC}"
 cd "$ROOT_DIR/client" && PORT=3003 BROWSER=none npm start &
 FRONTEND_PID=$!
 
 sleep 5
 echo ""
 echo -e "${BLUE}================================================${NC}"
-echo -e "${GREEN}Portal dziala!${NC}"
+echo -e "${GREEN}Platform is running!${NC}"
 echo ""
-echo -e "  Otworz w przegladarce:  ${GREEN}http://localhost:3003${NC}"
+echo -e "  Open in browser:  ${GREEN}http://localhost:3003${NC}"
 echo ""
-echo -e "${YELLOW}Konta testowe:${NC}"
-echo -e "  admin@unicredit.pl       / admin"
-echo -e "  jan.kowalski@unicredit.pl / user  (lub dowolny email)"
+echo -e "${YELLOW}Demo accounts:${NC}"
+echo -e "  admin@bibest.eu  / admin"
+echo -e "  user@bibest.eu   / user"
 echo ""
-echo -e "${YELLOW}Zatrzymanie: Ctrl+C${NC}"
+echo -e "${YELLOW}Stop: Ctrl+C${NC}"
 echo -e "${BLUE}================================================${NC}"
 
-# Cleanup przy Ctrl+C
+# Cleanup on Ctrl+C
 cleanup() {
     echo ""
-    echo -e "${YELLOW}Zatrzymuje portal...${NC}"
+    echo -e "${YELLOW}Stopping platform...${NC}"
     kill $BACKEND_PID 2>/dev/null
     kill $FRONTEND_PID 2>/dev/null
     lsof -ti :3002 | xargs kill -9 2>/dev/null
     lsof -ti :3003 | xargs kill -9 2>/dev/null
-    echo -e "${GREEN}Zatrzymano.${NC}"
+    echo -e "${GREEN}Stopped.${NC}"
     exit 0
 }
 trap cleanup SIGINT SIGTERM

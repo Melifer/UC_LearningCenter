@@ -61,7 +61,7 @@ const AdminDashboard = ({ user, showToast }) => {
       <div className="dashboard-header">
         <div>
           <h1>Admin Dashboard</h1>
-          <p className="dashboard-subtitle">UniCredit Learning Center — Training management</p>
+          <p className="dashboard-subtitle">BiBest Learning Center — Training management</p>
         </div>
         <div className="header-actions-group">
           <button className="button-secondary" onClick={() => navigate('/admin/import-markdown')}>📄 Import Markdown</button>

@@ -1,4 +1,4 @@
-# UniCredit Learning Center — Project Context
+# BiBest Learning Center — Project Context
 
 > **For AI:** Read this file before starting any work. It contains architecture, current state, and key decisions.
 
@@ -8,7 +8,7 @@
 
 | Layer | Technology | Port |
 |-------|------------|------|
-| Frontend | React 18 (CRA), React Router v6 | 3003 |
+| Frontend | React 19 + **Vite**, React Router v7 | 3003 |
 | Backend | Node.js + Express.js | 3002 |
 | Database | SQLite3 (`backend/learning_center.db`) | — |
 | PDF | pdfkit | — |
@@ -18,23 +18,23 @@
 ```bash
 ./start.sh
 # or separately:
-cd backend && node server.js      # port 3002
-cd client && PORT=3003 npm start  # port 3003
+cd backend && node server.js   # port 3002
+cd client && npm start         # Vite dev server on port 3003
 ```
 
 **Build for production:**
 ```bash
 cd client && npm run build
-# Outputs to client/build/ — serve via Express static or upload to host
+# Outputs to client/dist/ — served by Express static middleware
 ```
 
 ---
 
 ## Project Purpose
 
-Internal employee training platform for UniCredit bank staff. Covers mandatory regulatory trainings (EBA, GDPR, AML, internal policies). Key characteristics:
+Premium training platform — BiBest Learning Center. Covers compliance, regulatory and skills-based trainings. Key characteristics:
 - **No registration** — email-only SSO login (auto-provisions users from email)
-- **Roles**: `user` (employee) and `admin` only
+- **Roles**: `user` (learner) and `admin` only
 - **Mandatory courses** with deadlines and refresher cycles
 - **Completion = passing the quiz** (not just lesson completion)
 - All content in **English**
@@ -44,7 +44,7 @@ Internal employee training platform for UniCredit bank staff. Covers mandatory r
 ## Project Structure
 
 ```
-LearningCenter/
+UC_LearningCenter/
 ├── backend/
 │   ├── server.js              # Express API (~1500 lines)
 │   ├── utils/
@@ -53,31 +53,28 @@ LearningCenter/
 ├── client/
 │   ├── public/
 │   │   ├── images/
-│   │   │   └── unicredit-logo.png  # Official UniCredit logo (140×28px)
+│   │   │   └── BiBestLearningCenter.png  # Transparent logo (2320×464px)
 │   │   └── index.html
+│   ├── dist/                  # Production build output (served by Express)
 │   └── src/
-│       ├── App.js             # Router, auth state (no theme toggle)
-│       ├── styles.css         # UniCredit brand CSS (~9000 lines)
+│       ├── App.jsx            # Router, auth state
+│       ├── styles.css         # BiBest brand CSS
 │       └── components/
-│           ├── Login.js         # Email-only SSO, UniCredit navy hero
-│           ├── Header.js        # Logo from /images/, no Courses link, no theme toggle
-│           ├── Footer.js
-│           ├── Dashboard.js     # Routes to UserDashboard or AdminDashboard
-│           ├── UserDashboard.js # Course catalog + progress + mandatory badges
-│           ├── AdminDashboard.js # Courses management: publish/unpublish/edit/duplicate
-│           ├── CourseList.js    # /browse page (catalog with filters)
-│           ├── CoursePage.js    # Course detail, sidebar nav, quiz-based completion
-│           ├── LessonView.js    # Lesson reader with scroll fix (activeLessonRef)
-│           ├── QuizPage.js      # Quiz with scoring, pass/fail, certificate trigger
-│           ├── CreateCourse.js  # 6-step course builder (no price/slides/handbook steps)
-│           ├── MarkdownImport.js # .md file upload → pre-fills CreateCourse
-│           ├── ProfilePage.js
-│           ├── CertificatesPage.js
-│           ├── Toast.js / ToastContainer.js
-│           └── Dashboard.js
-├── docs/
-│   └── courses/
-│       └── eba-ict-security-risk-management.md  # EBA course (English, modules+quiz only)
+│           ├── Login.jsx        # BiBest hero + feature cards + SSO login form
+│           ├── Header.jsx       # Logo from /images/
+│           ├── Footer.jsx
+│           ├── Dashboard.jsx    # Routes to UserDashboard or AdminDashboard
+│           ├── UserDashboard.jsx
+│           ├── AdminDashboard.jsx
+│           ├── CourseList.jsx
+│           ├── CoursePage.jsx
+│           ├── LessonView.jsx
+│           ├── QuizPage.jsx
+│           ├── CreateCourse.jsx
+│           ├── MarkdownImport.jsx
+│           ├── ProfilePage.jsx
+│           ├── CertificatesPage.jsx
+│           └── Toast.jsx / ToastContainer.jsx
 ├── start.sh
 ├── .gitignore
 ├── README.md

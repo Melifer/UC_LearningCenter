@@ -44,14 +44,16 @@ const ProfileePage = ({ user, onUserUpdate, showToast }) => {
         </div>
       </div>
 
-      <div className="profile-stats-row">
-        <div className="profile-stat clickable" onClick={() => navigate('/certificates')}>
-          <span className="ps-val">{certs.length}</span>
-          <span className="ps-label">Certyfikaty →</span>
+      {user.role !== 'admin' && (
+        <div className="profile-stats-row">
+          <div className="profile-stat clickable" onClick={() => navigate('/certificates')}>
+            <span className="ps-val">{certs.length}</span>
+            <span className="ps-label">Certyfikaty →</span>
+          </div>
+          <div className="profile-stat"><span className="ps-val">{yearCPE}h</span><span className="ps-label">CPE {new Date().getFullYear()}</span></div>
+          <div className="profile-stat"><span className="ps-val">{totalCPE}h</span><span className="ps-label">CPE łącznie</span></div>
         </div>
-        <div className="profile-stat"><span className="ps-val">{yearCPE}h</span><span className="ps-label">CPE {new Date().getFullYear()}</span></div>
-        <div className="profile-stat"><span className="ps-val">{totalCPE}h</span><span className="ps-label">CPE łącznie</span></div>
-      </div>
+      )}
 
       <div className="dashboard-tabs">
         {[['profile','👤 Profile']].map(([key,label]) => (
@@ -66,7 +68,7 @@ const ProfileePage = ({ user, onUserUpdate, showToast }) => {
             <div className="bf-group"><label>Full name</label><input type="text" value={profile.name} onChange={e => setProfilee({...profile, name: e.target.value})} placeholder="Jan Kowalski" /></div>
             <div className="bf-group"><label>Email address</label><input type="email" value={profile.email} onChange={e => setProfilee({...profile, email: e.target.value})} /></div>
           </div>
-          <p className="sso-note">🔐 Authentication is managed via UniCredit corporate SSO. Your profile data is synchronised from the corporate directory.</p>
+          <p className="sso-note">🔐 Authentication is managed via BiBest corporate SSO. Your profile data is synchronised from the corporate directory.</p>
           <button className="button-primary" onClick={handleSaveProfilee} disabled={saving}>{saving ? 'Saving...' : 'Save changes'}</button>
         </div>
       )}

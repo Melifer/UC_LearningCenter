@@ -52,7 +52,7 @@ const CertificatesPage = ({ user }) => {
               <div className="cert-card-icon">🎓</div>
               <div className="cert-card-info">
                 <h4>{cert.title}</h4>
-                <p>Completed: {new Date(cert.completed_at).toLocaleDateString('pl-PL', { year:'numeric', month:'long', day:'numeric' })}</p>
+                <p>Completed: {new Date(cert.completed_at).toLocaleDateString('en-GB', { year:'numeric', month:'long', day:'numeric' })}</p>
                 <p className="cert-cpe">{cert.cpeHours} CPE Hours</p>
               </div>
               <div className="cert-card-actions">

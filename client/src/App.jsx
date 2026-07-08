@@ -43,6 +43,10 @@ function App() {
     setIsAuthenticated(true);
   };
   const handleLogout = () => {
+    // Reset all progress so courses appear fresh on next login
+    if (user?.id) {
+      fetch(`/api/users/${user.id}/progress`, { method: 'DELETE' }).catch(() => {});
+    }
     localStorage.removeItem("user");
     setUser(null);
     setIsAuthenticated(false);
