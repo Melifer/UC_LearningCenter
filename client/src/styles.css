@@ -8774,6 +8774,29 @@ body.light-theme .login-b2b { background: #0e1520; }
 .md-import-info li { font-size: 13px; padding: 4px 0; color: var(--text-secondary); }
 .md-import-note { font-size: 12px; color: var(--text-muted); margin-top: 10px; font-style: italic; }
 
+.md-source-files {
+  grid-column: 1 / -1;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 16px 20px;
+  margin-bottom: 4px;
+}
+.md-source-files h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary); }
+.md-source-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.md-source-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-primary); border: 1px solid var(--border-color);
+  border-radius: 6px; padding: 8px 14px;
+  cursor: pointer; font-size: 14px; color: var(--text-primary);
+  transition: border-color 0.15s, background 0.15s;
+}
+.md-source-item:hover:not(:disabled) { border-color: var(--accent-color); background: var(--bg-hover); }
+.md-source-item:disabled { opacity: 0.5; cursor: wait; }
+.md-source-icon { font-size: 16px; }
+.md-source-name { font-family: 'Courier New', monospace; font-size: 13px; }
+.md-source-loading { font-size: 12px; color: var(--text-muted); }
+
 .md-format-section h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
 .md-format-code {
   background: var(--bg-surface);

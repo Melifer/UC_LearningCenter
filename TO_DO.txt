@@ -1,0 +1,69 @@
+dodanie justowania w tekscie slajdow
+upload obrazkow na serwer i mozliwosc ich podpiecia po id do slajdow
+podobnie z contentem video z youtube
+labelke mandatory zmien an recommended np w opisie szkolenia Intermediate · 1 hourMANDATORY
+rozszerzenie strony "startowej" szkolenia - dodanie Course Overview, Resources, kiedy uploaded szkolenie na platforme, estimated time, Autor
+Dodanie rejestracji / logowania i SSO
+Historia szkoleń + certyfikaty + info ile zrobilem godzin CPE w roku, All CPE, 
+Przełącznik tryb jasny / ciemny
+Dodanie płatnych szkoleń + dla darmowych generowanie certu po wniesieniu płatnosci 
+Landing page po zalogowaniu: nowe szkolenia / rekomendowane / moje w trakcie (continue learning)
+"Gwiazka" - oznaczenie szkolen ktore chce zrealizowac 
+Kategoryzacja szkoleń
+Trenerzy + lista szkolen trenera
+scroll do slajdow w szkoleniu
+
+
+
+a da sie zrobic tak zebym pliki wideo trzymal na dysku google a bylo to wyswietlane na mojej prezentacji ktora jest strona internetowa?
+
+Tak, da się to zrobić i jest to całkiem wygodne rozwiązanie, bo Dysk Google załatwia za Ciebie hosting i streaming pliku (nie obciążasz swojego serwera).
+
+Musisz jednak pamiętać o jednej ważnej rzeczy: Dysk Google nie daje bezpośredniego linku do pliku wideo .mp4, tylko do swojego odtwarzacza. Dlatego zwykły tag HTML <video> nie zadziała. Zamiast tego musisz użyć ramki <iframe>, czyli osadzić (embedować) odtwarzacz Google na swojej stronie.
+
+Oto jak to zrobić krok po kroku:
+
+Krok 1: Przygotuj plik na Dysku Google
+Wrzuć swoje wideo na Dysk Google.
+
+Kliknij na plik prawym przyciskiem myszy, wybierz Udostępnij -> Udostępnij.
+
+Zmień dostęp z Ograniczony na Każda osoba mająca link (jako Przeglądający). To kluczowe – inaczej widzowie Twojej strony zobaczą błąd braku uprawnień.
+
+Krok 2: Pobierz kod do osadzenia
+Kliknij dwukrotnie na wideo na Dysku, aby otworzyć je w trybie podglądu.
+
+W prawym górnym rogu kliknij ikonę trzech pionowych kropek i wybierz Otwórz w nowym oknie.
+
+W nowym oknie kliknij ponownie trzy pionowe kropki w prawym górnym rogu i wybierz Umieść element....
+
+Skopiuj wygenerowany kod HTML (będzie wyglądał mniej więcej tak):
+
+HTML
+<iframe src="https://drive.google.com/file/d/TWÓJ_IDENTYFIKATOR_PLIKU/preview" width="640" height="480" allow="autoplay"></iframe>
+Krok 3: Wklej kod na swoją stronę www
+Wklejasz ten kod w kodzie HTML swojej strony tam, gdzie ma się pojawić wideo.
+
+Pro Tip: Automatyczne odtwarzanie i wygląd (CSS)
+Standardowy odtwarzacz z Google Drive ma czarne paski i pasek sterowania, który może psuć estetykę prezentacji internetowej. Możesz go jednak trochę podrasować.
+
+1. Responsywność w CSS:
+Żeby wideo ładnie dopasowywało się do ekranu komputera czy telefonu, nadaj ramce klasę i ostyluj ją w CSS:
+
+CSS
+.video-prezentacja {
+  width: 100%;
+  max-width: 800px; /* maksymalna szerokość na stronie */
+  aspect-ratio: 16 / 9; /* zachowanie kinowych proporcji */
+  border: none; /* usunięcie brzydkiej ramki */
+  border-radius: 8px; /* opcjonalnie: zaokrąglone rogi */
+}
+2. Autoplay (Automatyczny start):
+W kodzie z Dysku Google na samym końcu linku (tuż przed słowem preview) możesz dopisać parametr ?autoplay=1, chociaż nowoczesne przeglądarki i tak zablokują dźwięk przy automatycznym starcie. Najbezpieczniej jest pozwolić użytkownikowi kliknąć "Play" lub – jeśli zależy Ci na czystym efekcie prezentacji – wrzucić wideo bezpośrednio na serwer jako wyciszony plik .mp4 w pętli.
+
+Gdybyś potrzebował pomocy z ułożeniem kodu HTML/CSS pod konkretny układ slajdów na stronie, daj znać!
+
+
+
+
+Gemini to AI i może popełniać błędy, także co do ludzi. Twoja prywatność i Gemini

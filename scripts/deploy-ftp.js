@@ -59,6 +59,25 @@ const path = require('path');
     console.log(`\n🚀  Łączenie z ftp://${host}:${port} ...`);
     await client.access({ host, port, user, password: pass, secure: false });
 
+    // Zachowaj pliki z docs/sources/ których nie ma lokalnie (wgrane przez użytkowników)
+    const localSourcesDir = path.join(ROOT, 'docs', 'sources');
+    const localSourceNames = new Set(
+      fs.existsSync(localSourcesDir) ? fs.readdirSync(localSourcesDir) : []
+    );
+    const preservedSources = []; // { name, tmpPath }
+    try {
+      const remoteList = await client.list(`${remoteDir}/docs/sources`);
+      for (const entry of remoteList) {
+        if (!entry.isDirectory && !localSourceNames.has(entry.name)) {
+          const tmpPath = path.join(require('os').tmpdir(), `_deploy_src_${entry.name}`);
+          await client.downloadTo(tmpPath, `${remoteDir}/docs/sources/${entry.name}`);
+          preservedSources.push({ name: entry.name, tmpPath });
+        }
+      }
+      if (preservedSources.length > 0)
+        console.log(`💾  Zachowuję ${preservedSources.length} plik(ów) z docs/sources/ (wgrane przez użytkowników)`);
+    } catch (_) { /* docs/sources/ może jeszcze nie istnieć na serwerze */ }
+
     // Wyczyść katalog przed uplodem
     console.log(`🧹  Czyszczenie ${remoteDir} ...`);
     await client.ensureDir(remoteDir);
@@ -107,6 +126,18 @@ const path = require('path');
       console.log(`⬆️   docs/`);
       await client.ensureDir(`${remoteDir}/docs`);
       await client.uploadFromDir(docsDir, `${remoteDir}/docs`);
+    }
+
+    // 7b. Przywróć pliki wgrane przez użytkowników do docs/sources/
+    if (preservedSources.length > 0) {
+      console.log(`♻️   Przywracam ${preservedSources.length} plik(ów) do docs/sources/ ...`);
+      await client.ensureDir(`${remoteDir}/docs/sources`);
+      for (const { name, tmpPath } of preservedSources) {
+        if (fs.existsSync(tmpPath)) {
+          await client.uploadFrom(tmpPath, `${remoteDir}/docs/sources/${name}`);
+          fs.unlinkSync(tmpPath);
+        }
+      }
     }
 
     // 8. Restart Passenger (touch tmp/restart.txt)

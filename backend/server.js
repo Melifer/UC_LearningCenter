@@ -1457,12 +1457,58 @@ app.get('/api/trainer/students/:trainerId', (req, res) => {
 
 // ============ MARKDOWN IMPORT ============
 
-// Import course from markdown file
+// W dev: server.js jest w backend/, docs/ jest o poziom wyżej → ../docs/sources
+// W prod: server.js jest w root (/learning/), docs/ jest obok → ./docs/sources
+const SOURCES_DIR = [
+  path.join(__dirname, 'docs/sources'),      // produkcja (server.js w root)
+  path.join(__dirname, '../docs/sources'),   // dev (server.js w backend/)
+].find(p => fs.existsSync(p)) || path.join(__dirname, 'docs/sources');
+
+// List available source .md files
+app.get('/api/admin/source-files', (req, res) => {
+  try {
+    if (!fs.existsSync(SOURCES_DIR)) return res.json({ files: [] });
+    const files = fs.readdirSync(SOURCES_DIR)
+      .filter(f => f.endsWith('.md') || f.endsWith('.markdown'))
+      .sort();
+    res.json({ files });
+  } catch (err) {
+    res.status(500).json({ error: 'Cannot read sources dir: ' + err.message });
+  }
+});
+
+// Import course from a source file (by filename, no path traversal)
+app.post('/api/admin/import-source-file', (req, res) => {
+  const { filename } = req.body;
+  if (!filename || filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+  const filePath = path.join(SOURCES_DIR, filename);
+  if (!filePath.startsWith(SOURCES_DIR + path.sep) && filePath !== SOURCES_DIR) {
+    return res.status(400).json({ error: 'Invalid filename' });
+  }
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
+  try {
+    const text = fs.readFileSync(filePath, 'utf-8');
+    const parsed = parseCourseMarkdown(text);
+    res.json({ success: true, course: parsed });
+  } catch (err) {
+    res.status(400).json({ error: 'Błąd parsowania: ' + err.message });
+  }
+});
+
+// Import course from markdown file (and save a copy to docs/sources/)
 app.post('/api/admin/import-markdown', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
     const text = req.file.buffer.toString('utf-8');
     const parsed = parseCourseMarkdown(text);
+    // Save copy to docs/sources/ so it appears in the source-files list
+    try {
+      if (!fs.existsSync(SOURCES_DIR)) fs.mkdirSync(SOURCES_DIR, { recursive: true });
+      const safeName = path.basename(req.file.originalname).replace(/[^a-zA-Z0-9._-]/g, '_');
+      fs.writeFileSync(path.join(SOURCES_DIR, safeName), req.file.buffer);
+    } catch (_) { /* non-fatal */ }
     res.json({ success: true, course: parsed });
   } catch (err) {
     res.status(400).json({ error: 'Błąd parsowania: ' + err.message });

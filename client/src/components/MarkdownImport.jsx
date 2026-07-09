@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const MarkdownImport = ({ showToast }) => {
@@ -6,6 +6,38 @@ const MarkdownImport = ({ showToast }) => {
   const [dragging, setDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sourceFiles, setSourceFiles] = useState([]);
+  const [loadingSource, setLoadingSource] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/admin/source-files')
+      .then(r => r.json())
+      .then(data => setSourceFiles(data.files || []))
+      .catch(() => {});
+  }, []);
+
+  const handleSourceFile = async (filename) => {
+    setLoadingSource(filename);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/import-source-file', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Error parsowania pliku');
+        setLoadingSource(null);
+        return;
+      }
+      showToast && showToast('File imported — review and publish', 'success');
+      navigate('/admin/create-course', { state: { importedCourse: data.course } });
+    } catch (err) {
+      setError('Error sieci: ' + err.message);
+    }
+    setLoadingSource(null);
+  };
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -82,6 +114,27 @@ D) Option D
       </div>
 
       <div className="md-import-layout">
+        {sourceFiles.length > 0 && (
+          <div className="md-source-files">
+            <h3>Pliki źródłowe (docs/sources)</h3>
+            <ul className="md-source-list">
+              {sourceFiles.map(file => (
+                <li key={file}>
+                  <button
+                    className="md-source-item"
+                    disabled={!!loadingSource}
+                    onClick={() => handleSourceFile(file)}
+                  >
+                    <span className="md-source-icon">📄</span>
+                    <span className="md-source-name">{file}</span>
+                    {loadingSource === file && <span className="md-source-loading">…</span>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="md-dropzone-section">
           <div
             className={`md-dropzone ${dragging ? 'md-dropzone--dragging' : ''} ${loading ? 'md-dropzone--loading' : ''}`}
