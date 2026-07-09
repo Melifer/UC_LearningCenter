@@ -99,7 +99,9 @@ const Login = ({ onLogin }) => {
                   placeholder="e.g. John Smith"
                   autoComplete="name"
                 />
-                <p className="login-field-hint">* Your name will appear on your completion certificate.<br/><u>Session progress is cleared on sign-out.</u></p>
+                <p className="login-field-hint">* Your name will appear on your completion certificate.<br/>
+                  <strong style={{ color: '#e53e3e' }}>⚠️ Session progress is cleared on sign-out.</strong>
+                </p>
               </div>
               <button type="submit" className="login-submit" disabled={loading}>
                 {loading ? <span className="btn-spinner"></span> : 'Sign In'}

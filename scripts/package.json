@@ -1,0 +1,13 @@
+{
+  "name": "uc-deploy-scripts",
+  "version": "1.0.0",
+  "description": "Deploy scripts for UC Learning Center",
+  "private": true,
+  "scripts": {
+    "deploy": "node deploy-ftp.js"
+  },
+  "dependencies": {
+    "basic-ftp": "^5.0.5",
+    "dotenv": "^16.4.5"
+  }
+}
